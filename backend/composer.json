@@ -1,0 +1,14 @@
+{
+  "name": "pixelverse/backend",
+  "description": "Backend API for PixelVerse Event",
+  "type": "project",
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/",
+      "App\\Config\\": "config/"
+    }
+  },
+  "require": {
+    "php": ">=8.0"
+  }
+}
