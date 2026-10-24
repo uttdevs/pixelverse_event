@@ -10,6 +10,8 @@ vendor/
 # Build output
 dist/
 build/
+bin/
+backend/bin/
 
 # Logs & temp
 *.log

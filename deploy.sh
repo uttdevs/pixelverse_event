@@ -14,12 +14,12 @@ if [ -d "frontend" ]; then
     cd ..
 fi
 
-# Install Backend dependencies
+# Build Backend (Go)
 if [ -d "backend" ]; then
-    echo "Instalando dependencias de backend..."
+    echo "Compilando backend (Go)..."
     cd backend
-    if [ -f "composer.json" ] && command -v composer &> /dev/null; then
-        composer install --no-dev --optimize-autoloader
+    if [ -f "go.mod" ] && command -v go &> /dev/null; then
+        go build -o bin/api ./cmd/api
     fi
     cd ..
 fi
