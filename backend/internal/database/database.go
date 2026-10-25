@@ -3,105 +3,78 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"net"
 	"os"
 	"time"
+
+	mysqlDriver "github.com/go-sql-driver/mysql"
 )
 
-// Config almacena los parámetros de configuración para la base de datos.
+
+// Config almacena los parámetros de conexión de la base de datos MySQL.
 type Config struct {
-	Driver   string // "mysql" o "postgres"
+	Driver   string
 	Host     string
 	Port     string
 	User     string
 	Password string
 	DBName   string
-	SSLMode  string // postgres: "disable", "require", etc.
 }
 
-// NewConfigFromEnv obtiene la configuración desde variables de entorno con valores por defecto.
+// NewConfigFromEnv lee la configuración desde variables de entorno.
 func NewConfigFromEnv() Config {
-	driver := os.Getenv("DB_DRIVER")
-	if driver == "" {
-		driver = "mysql"
-	}
-
-	host := os.Getenv("DB_HOST")
-	if host == "" {
-		host = "localhost"
-	}
-
-	port := os.Getenv("DB_PORT")
-	if port == "" {
-		if driver == "postgres" {
-			port = "5432"
-		} else {
-			port = "3306"
-		}
-	}
-
-	user := os.Getenv("DB_USER")
-	if user == "" {
-		user = "root"
-	}
-
-	password := os.Getenv("DB_PASS")
-	if password == "" {
-		password = ""
-	}
-
-	dbname := os.Getenv("DB_NAME")
-	if dbname == "" {
-		dbname = "pixelverse_db"
-	}
-
-	sslmode := os.Getenv("DB_SSLMODE")
-	if sslmode == "" {
-		sslmode = "disable"
-	}
-
 	return Config{
-		Driver:   driver,
-		Host:     host,
-		Port:     port,
-		User:     user,
-		Password: password,
-		DBName:   dbname,
-		SSLMode:  sslmode,
+		Driver:   envOrDefault("DB_DRIVER", "mysql"),
+		Host:     envOrDefault("DB_HOST", "127.0.0.1"),
+		Port:     envOrDefault("DB_PORT", "3306"),
+		User:     envOrDefault("DB_USER", "root"),
+		Password: os.Getenv("DB_PASS"),
+		DBName:   envOrDefault("DB_NAME", "pixelverse_db"),
 	}
 }
 
-// DSN construye la cadena de conexión según el driver configurado.
+// envOrDefault devuelve una variable de entorno o un valor predeterminado si está vacía.
+func envOrDefault(key, fallback string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+	return value
+}
+
+// DSN construye una cadena de conexión MySQL escapando correctamente los parámetros.
 func (c Config) DSN() string {
-	switch c.Driver {
-	case "postgres":
-		return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-			c.Host, c.Port, c.User, c.Password, c.DBName, c.SSLMode)
-	case "mysql":
-		fallthrough
-	default:
-		// Formato estándar de MySQL DSN: username:password@tcp(host:port)/dbname?parseTime=true
-		if c.Password != "" {
-			return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
-				c.User, c.Password, c.Host, c.Port, c.DBName)
-		}
-		return fmt.Sprintf("%s@tcp(%s:%s)/%s?parseTime=true",
-			c.User, c.Host, c.Port, c.DBName)
-	}
+	return (&mysqlDriver.Config{
+		User:         c.User,
+		Passwd:       c.Password,
+		Net:          "tcp",
+		Addr:         net.JoinHostPort(c.Host, c.Port),
+		DBName:       c.DBName,
+		ParseTime:    true,
+		Loc:          time.Local,
+		Timeout:      5 * time.Second,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}).FormatDSN()
 }
 
-// Connect abre una conexión con la base de datos utilizando database/sql.
-// NOTA: Para establecer una conexión real se requerirá importar el driver
-// correspondiente (e.g. _ "github.com/go-sql-driver/mysql" o _ "github.com/lib/pq")
-// cuando se autoricen dependencias externas.
+// Connect crea el pool de conexiones de MySQL.
 func Connect(cfg Config) (*sql.DB, error) {
-	db, err := sql.Open(cfg.Driver, cfg.DSN())
+	if cfg.Driver != "mysql" {
+		return nil, fmt.Errorf("DB_DRIVER=%q no está soportado: este proyecto utiliza MySQL", cfg.Driver)
+	}
+	if cfg.Host == "" || cfg.Port == "" || cfg.User == "" || cfg.DBName == "" {
+		return nil, fmt.Errorf("la configuración de MySQL contiene valores obligatorios vacíos")
+	}
+
+	db, err := sql.Open("mysql", cfg.DSN())
 	if err != nil {
-		return nil, fmt.Errorf("error al inicializar conexión con base de datos (%s): %w", cfg.Driver, err)
+		return nil, fmt.Errorf("no se pudo inicializar la conexión con MySQL: %w", err)
 	}
 
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(5 * time.Minute)
-
+	db.SetConnMaxIdleTime(1 * time.Minute)
 	return db, nil
 }

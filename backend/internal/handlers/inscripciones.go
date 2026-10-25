@@ -5,64 +5,48 @@ import (
 	"net/http"
 )
 
+
+
 type InscripcionVista struct {
-	IDInscripcion   int    `json:"id_inscripcion"`
-	Juego           string `json:"juego"`
-	Participante    string `json:"participante"`
-	Matricula       string `json:"matricula"`
-	Carrera         string `json:"carrera"`
-	Cuatrimestre    int    `json:"cuatrimestre"`
-	Grupo           string `json:"grupo"`
-	Telefono        string `json:"telefono"`
-	Correo          string `json:"correo,omitempty"`
-	Asistio         int    `json:"asistio"`
+	IDInscripcion    int    `json:"id_inscripcion"`
+	Juego            string `json:"juego"`
+	Participante     string `json:"participante"`
+	Matricula        string `json:"matricula"`
+	Carrera          string `json:"carrera"`
+	Cuatrimestre     int    `json:"cuatrimestre"`
+	Grupo            string `json:"grupo"`
+	Telefono         string `json:"telefono"`
+	Correo           string `json:"correo,omitempty"`
+	Asistio          int    `json:"asistio"`
 	FechaInscripcion string `json:"fecha_inscripcion"`
 }
 
+// GetInscripciones devuelve las inscripciones con datos relacionados para uso administrativo autorizado.
 func GetInscripciones(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			writeJSON(w, http.StatusMethodNotAllowed, ErrorResponse{
-				Status:  "error",
-				Message: "Método no permitido",
-			})
-			return
-		}
-
-		rows, err := db.Query("SELECT id_inscripcion, juego, participante, matricula, carrera, cuatrimestre, grupo, telefono, IFNULL(correo, ''), asistio, fecha_inscripcion FROM vista_inscripciones ORDER BY id_inscripcion")
+		query := "SELECT id_inscripcion, juego, participante, matricula, carrera, cuatrimestre, grupo, telefono, COALESCE(correo, ''), asistio, fecha_inscripcion FROM vista_inscripciones ORDER BY id_inscripcion"
+		rows, err := db.QueryContext(r.Context(), query)
 		if err != nil {
-			writeJSON(w, http.StatusInternalServerError, ErrorResponse{
-				Status:  "error",
-				Message: "Error al obtener inscripciones",
-			})
+			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudieron obtener las inscripciones"})
 			return
 		}
 		defer rows.Close()
 
-		var inscripciones []InscripcionVista
+		inscripciones := make([]InscripcionVista, 0)
 		for rows.Next() {
-			var iv InscripcionVista
+			var inscripcion InscripcionVista
 			var correo string
-			if err := rows.Scan(&iv.IDInscripcion, &iv.Juego, &iv.Participante, &iv.Matricula, &iv.Carrera, &iv.Cuatrimestre, &iv.Grupo, &iv.Telefono, &correo, &iv.Asistio, &iv.FechaInscripcion); err != nil {
-				writeJSON(w, http.StatusInternalServerError, ErrorResponse{
-					Status:  "error",
-					Message: "Error al leer inscripciones",
-				})
+			if err := rows.Scan(&inscripcion.IDInscripcion, &inscripcion.Juego, &inscripcion.Participante, &inscripcion.Matricula, &inscripcion.Carrera, &inscripcion.Cuatrimestre, &inscripcion.Grupo, &inscripcion.Telefono, &correo, &inscripcion.Asistio, &inscripcion.FechaInscripcion); err != nil {
+				writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudieron leer las inscripciones"})
 				return
 			}
-			if correo != "" {
-				iv.Correo = correo
-			}
-			inscripciones = append(inscripciones, iv)
+			inscripcion.Correo = correo
+			inscripciones = append(inscripciones, inscripcion)
 		}
 		if err := rows.Err(); err != nil {
-			writeJSON(w, http.StatusInternalServerError, ErrorResponse{
-				Status:  "error",
-				Message: "Error al leer inscripciones",
-			})
+			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "Ocurrió un error al leer las inscripciones"})
 			return
 		}
-
 		writeJSON(w, http.StatusOK, inscripciones)
 	}
 }
