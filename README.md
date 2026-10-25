@@ -18,7 +18,8 @@ pixelverse_event/
 │   │   └── handlers/         # Manejadores HTTP (registro y health check)
 │   ├── go.mod                # Módulo Go (pixelverse/backend)
 │   ├── go.sum                # Verificación de dependencias
-│   └── schema.sql            # Esquema de base de datos (tabla attendees)
+│   ├── schema.sql            # Esquema de base de datos (torneo de videojuegos)
+│   ├── seeder.sql            # Datos iniciales y de prueba (semillas)
 │
 ├── frontend/             # Interfaz web (Vite + JavaScript/CSS)
 │   ├── src/
@@ -57,6 +58,18 @@ Variables principales:
 - `PORT`: Puerto en el que corre la API (por defecto: `8000`).
 - `DB_DRIVER`: Driver de base de datos (`mysql` o `postgres`).
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_NAME`: Credenciales de la base de datos.
+
+### Base de Datos
+
+Para inicializar la base de datos con el esquema del torneo y cargar los datos de prueba:
+
+```bash
+# Crear la base de datos y tablas
+mysql -u root -p < backend/schema.sql
+
+# Opcional: cargar datos de prueba / semillas
+mysql -u root -p < backend/seeder.sql
+```
 
 ---
 
