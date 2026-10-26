@@ -1,0 +1,175 @@
+/* ==========================================================================
+   TAILWIND CSS V4 & ESTILOS GLOBALES CIBERPUNK - PIXEL VERSE 2026
+   --------------------------------------------------------------------------
+   Tailwind v4 utiliza @import "tailwindcss" y el bloque @theme para definir
+   variables semánticas, colores y fuentes compiladas en build-time con Rust.
+   ========================================================================== */
+
+@import "tailwindcss";
+
+@theme {
+  /* Paleta Ciberpunk */
+  --color-cyber-dark: #05050b;
+  --color-cyber-card: #0c0c1a;
+  --color-cyber-blue: #00f0ff;
+  --color-cyber-purple: #9d00ff;
+  --color-cyber-pink: #ff007f;
+  --color-cyber-indigo: #4f46e5;
+
+  /* Tipografías Oficiales */
+  --font-orbitron: 'Orbitron', sans-serif;
+  --font-rajdhani: 'Rajdhani', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+
+  /* Animaciones */
+  --animate-pulse-fast: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-float: float 5s ease-in-out infinite;
+  --animate-glow: glow 2s ease-in-out infinite alternate;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  @keyframes glow {
+    0% {
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.4), 0 0 20px rgba(157, 0, 255, 0.2);
+    }
+    100% {
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.8), 0 0 45px rgba(157, 0, 255, 0.6);
+    }
+  }
+}
+
+:root {
+  --neon-blue: #00f0ff;
+  --neon-purple: #9d00ff;
+  --bg-dark: #05050b;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* --------------------------------------------------------------------------
+ * 1. Barra de desplazamiento personalizada (Gamer Scrollbar)
+ * -------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #05050b;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--neon-blue), var(--neon-purple));
+  border-radius: 4px;
+}
+
+/* --------------------------------------------------------------------------
+ * 2. Cuadrícula Cyberpunk (Cyber Grid Background)
+ * -------------------------------------------------------------------------- */
+.cyber-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(157, 0, 255, 0.05) 1px, transparent 1px);
+  perspective: 1000px;
+}
+
+/* --------------------------------------------------------------------------
+ * 3. Líneas de Escaneo CRT (Scanlines Overlay)
+ * -------------------------------------------------------------------------- */
+.scanlines::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%);
+  z-index: 90;
+  background-size: 100% 4px;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+ * 4. Resplandores de Neón (Text & Box Glows)
+ * -------------------------------------------------------------------------- */
+.text-glow-blue {
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.7), 0 0 25px rgba(0, 240, 255, 0.4);
+}
+.text-glow-purple {
+  text-shadow: 0 0 10px rgba(157, 0, 255, 0.8), 0 0 25px rgba(157, 0, 255, 0.5);
+}
+.box-glow-blue {
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.25), inset 0 0 15px rgba(0, 240, 255, 0.1);
+}
+.box-glow-purple {
+  box-shadow: 0 0 15px rgba(157, 0, 255, 0.3), inset 0 0 15px rgba(157, 0, 255, 0.1);
+}
+.box-glow-combo {
+  box-shadow: -5px 0 20px rgba(0, 240, 255, 0.35), 5px 0 20px rgba(157, 0, 255, 0.35);
+}
+
+/* --------------------------------------------------------------------------
+ * 5. Esquinas Biseladas / Recortadas (Cyber Clip-Path)
+ * -------------------------------------------------------------------------- */
+.cyber-clip {
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+.cyber-clip-sm {
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+/* --------------------------------------------------------------------------
+ * 6. Efecto Glitch en Hover
+ * -------------------------------------------------------------------------- */
+.glitch-hover:hover {
+  animation: glitch-skew 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+}
+@keyframes glitch-skew {
+  0% { transform: skew(0deg); }
+  20% { transform: skew(-4deg); }
+  40% { transform: skew(4deg); }
+  60% { transform: skew(-2deg); }
+  80% { transform: skew(2deg); }
+  100% { transform: skew(0deg); }
+}
+
+/* --------------------------------------------------------------------------
+ * 7. Bordes con Gradiente e Inset Glassmorphism
+ * -------------------------------------------------------------------------- */
+.gradient-border {
+  position: relative;
+  background: rgba(12, 12, 26, 0.85);
+  backdrop-filter: blur(12px);
+}
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg, var(--neon-blue), transparent 50%, var(--neon-purple));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+ * 8. Conectores de las Llaves del Torneo (Bracket Connector Lines)
+ * -------------------------------------------------------------------------- */
+.bracket-line {
+  position: relative;
+}
+.bracket-line::after {
+  content: '';
+  position: absolute;
+  right: -24px;
+  top: 50%;
+  width: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, #00f0ff, #9d00ff);
+}
