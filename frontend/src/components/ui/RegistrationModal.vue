@@ -162,7 +162,7 @@ const handleSubmit = () => {
       <!-- Encabezado del Modal -->
       <div class="mb-6">
         <span class="font-rajdhani text-xs uppercase tracking-[0.25em] text-cyber-blue">
-          // REGISTRO DE ESCUADRÓN
+          // REGISTRO 
         </span>
         <h3 id="modal-title" class="font-orbitron font-black text-2xl text-white uppercase mt-1">
           INSCRIPCIÓN <span class="text-cyber-purple">OFICIAL</span>
@@ -178,14 +178,14 @@ const handleSubmit = () => {
         <!-- Nombre del Squad -->
         <div>
           <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
-            NOMBRE DEL SQUAD / CLAN *
+            NOMBRE COMPLETO
           </label>
           <input
             ref="firstInputRef"
             v-model="form.squadName"
             type="text"
             required
-            placeholder="Ej. Cyber Phantoms"
+            placeholder="Ej: FRIDA MENDEZ MONTIEL"
             class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-blue focus:outline-none text-sm text-white font-orbitron"
           />
         </div>
@@ -209,64 +209,82 @@ const handleSubmit = () => {
 
           <div>
             <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
-              DISCORD DEL CAPITÁN *
+              Matrícula 
             </label>
             <input
               v-model="form.discord"
               type="text"
               required
-              placeholder="usuario#0001"
+              placeholder="Ej: 25378039"
+              class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-purple focus:outline-none text-sm text-white"
+            />
+          </div>
+          <div>
+            <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+              Correo electrónico 
+            </label>
+            <input
+              v-model="form.discord"
+              type="text"
+              required
+              placeholder="Ej: Frid@gmail.com"
+              class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-purple focus:outline-none text-sm text-white"
+            />
+          </div>
+          
+          <div>
+            <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+              Cuatrimestre
+            </label>
+            <input
+              v-model="form.discord"
+              type="text"
+              required
+              placeholder="Ej: 4"
+              class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-purple focus:outline-none text-sm text-white"
+            />
+          </div>
+          <div>
+            <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+              Grupo
+            </label>
+            <input
+              v-model="form.discord"
+              type="text"
+              required
+              placeholder="Ej: B"
+              class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-purple focus:outline-none text-sm text-white"
+            />
+          </div>
+           <div>
+            <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+              CARRERA 
+            </label>
+            <select
+              v-model="form.game"
+              class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-blue focus:outline-none text-sm text-white font-rajdhani"
+            >
+              <option value="Valorant: Protocol">Tecnologias de la informacion </option>
+              <option value="League of Pixels">THE KING OF FIGHTERS</option>
+              <option value="CS2: Cyber Strike">STREET FIGHTER</option>
+            
+            </select>
+          </div>
+          <div>
+            <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+              Teléfono
+            </label>
+            <input
+              v-model="form.discord"
+              type="text"
+              required
+              placeholder="Ej: 236 182 9323"
               class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-purple focus:outline-none text-sm text-white"
             />
           </div>
         </div>
 
-        <!-- Rango Promedio del Equipo -->
-        <div>
-          <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
-            RANGO PROMEDIO DEL EQUIPO
-          </label>
-          <div class="grid grid-cols-3 gap-2 font-rajdhani text-xs">
-            <!-- Opción Amateur -->
-            <label class="cursor-pointer">
-              <input
-                v-model="form.tier"
-                type="radio"
-                value="Amateur"
-                class="peer hidden"
-              />
-              <div class="text-center py-2 rounded border border-white/10 bg-white/5 peer-checked:border-cyber-blue peer-checked:bg-cyber-blue/20 peer-checked:text-cyber-blue transition">
-                AMATEUR / ORO+
-              </div>
-            </label>
-
-            <!-- Opción Diamante -->
-            <label class="cursor-pointer">
-              <input
-                v-model="form.tier"
-                type="radio"
-                value="Diamante+"
-                class="peer hidden"
-              />
-              <div class="text-center py-2 rounded border border-white/10 bg-white/5 peer-checked:border-cyber-blue peer-checked:bg-cyber-blue/20 peer-checked:text-cyber-blue transition">
-                DIAMANTE / ASC
-              </div>
-            </label>
-
-            <!-- Opción Pro -->
-            <label class="cursor-pointer">
-              <input
-                v-model="form.tier"
-                type="radio"
-                value="Inmortal/Pro"
-                class="peer hidden"
-              />
-              <div class="text-center py-2 rounded border border-white/10 bg-white/5 peer-checked:border-cyber-purple peer-checked:bg-cyber-purple/20 peer-checked:text-purple-300 transition">
-                INMORTAL / PRO
-              </div>
-            </label>
-          </div>
-        </div>
+        
 
         <!-- Botón de Envío -->
         <div class="pt-3">
