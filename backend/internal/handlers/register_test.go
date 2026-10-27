@@ -8,75 +8,79 @@ import (
 	"testing"
 )
 
+
+
 func TestHealthCheck(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/api/health", nil)
-	rr := httptest.NewRecorder()
-
-	HealthCheck(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("HealthCheck retornó código erróneo: obtuvo %v esperado %v", status, http.StatusOK)
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/api/health", nil)
+	HealthCheck(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("código obtenido %d; se esperaba %d", recorder.Code, http.StatusOK)
 	}
-
-	var res map[string]string
-	if err := json.Unmarshal(rr.Body.Bytes(), &res); err != nil {
-		t.Fatalf("Respuesta no es JSON válido: %v", err)
+	var response map[string]string
+	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		t.Fatalf("la respuesta no es JSON válido: %v", err)
 	}
-
-	if res["status"] != "ok" {
-		t.Errorf("status esperado 'ok', obtenido '%s'", res["status"])
+	if response["status"] != "ok" {
+		t.Errorf("status obtenido %q; se esperaba %q", response["status"], "ok")
 	}
 }
 
-func TestRegisterSuccess(t *testing.T) {
-	payload := []byte(`{"full_name":"Test User","email":"test@example.com","ticket_type":"vip"}`)
-	req := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewBuffer(payload))
-	req.Header.Set("Content-Type", "application/json")
-	rr := httptest.NewRecorder()
-
-	Register(rr, req)
-
-	if status := rr.Code; status != http.StatusCreated {
-		t.Errorf("Register retornó código erróneo: obtuvo %v esperado %v", status, http.StatusCreated)
-	}
-
-	var res RegisterResponse
-	if err := json.Unmarshal(rr.Body.Bytes(), &res); err != nil {
-		t.Fatalf("Respuesta no es JSON válido: %v", err)
-	}
-
-	if res.Status != "success" {
-		t.Errorf("status esperado 'success', obtenido '%s'", res.Status)
-	}
-	if res.Data.FullName != "Test User" {
-		t.Errorf("FullName esperado 'Test User', obtenido '%s'", res.Data.FullName)
-	}
-	if res.Data.TicketType != "vip" {
-		t.Errorf("TicketType esperado 'vip', obtenido '%s'", res.Data.TicketType)
+func TestRegistrarParticipanteRechazaJSONInvalido(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/api/participantes", bytes.NewBufferString("{"))
+	request.Header.Set("Content-Type", "application/json")
+	RegistrarParticipante(nil)(recorder, request)
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("código obtenido %d; se esperaba %d", recorder.Code, http.StatusBadRequest)
 	}
 }
 
-func TestRegisterValidationErrors(t *testing.T) {
-	payload := []byte(`{"full_name":"","email":"invalid-email"}`)
-	req := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewBuffer(payload))
-	req.Header.Set("Content-Type", "application/json")
-	rr := httptest.NewRecorder()
-
-	Register(rr, req)
-
-	if status := rr.Code; status != http.StatusUnprocessableEntity {
-		t.Errorf("Register retornó código erróneo: obtuvo %v esperado %v", status, http.StatusUnprocessableEntity)
+func TestRegistrarParticipanteRechazaDatosInvalidosAntesDeAccederADB(t *testing.T) {
+	payload := `{"nombre":"","apellidos":"","matricula":"","id_carrera":0,"cuatrimestre":0,"grupo":"","telefono":"abc","juego_id":0}`
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/api/participantes", bytes.NewBufferString(payload))
+	request.Header.Set("Content-Type", "application/json")
+	RegistrarParticipante(nil)(recorder, request)
+	if recorder.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("código obtenido %d; se esperaba %d", recorder.Code, http.StatusUnprocessableEntity)
 	}
-
-	var res ErrorResponse
-	if err := json.Unmarshal(rr.Body.Bytes(), &res); err != nil {
-		t.Fatalf("Respuesta no es JSON válido: %v", err)
+	var response ErrorResponse
+	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		t.Fatalf("la respuesta no es JSON válido: %v", err)
 	}
-
-	if res.Status != "error" {
-		t.Errorf("status esperado 'error', obtenido '%s'", res.Status)
+	if len(response.Errors) < 5 {
+		t.Errorf("se esperaban varios errores de validación; se obtuvieron %d", len(response.Errors))
 	}
-	if len(res.Errors) < 2 {
-		t.Errorf("se esperaban al menos 2 errores de validación, se obtuvieron: %d", len(res.Errors))
+}
+
+func TestRegistrarParticipanteRechazaTipoDeContenidoIncorrecto(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/api/participantes", bytes.NewBufferString("nombre=Cristobal"))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	RegistrarParticipante(nil)(recorder, request)
+	if recorder.Code != http.StatusUnsupportedMediaType {
+		t.Fatalf("código obtenido %d; se esperaba %d", recorder.Code, http.StatusUnsupportedMediaType)
+	}
+}
+
+func TestAdminOnlyDeniegaSinClaveConfigurada(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/api/participantes", nil)
+	handler := AdminOnly("", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }))
+	handler.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("código obtenido %d; se esperaba %d", recorder.Code, http.StatusServiceUnavailable)
+	}
+}
+
+func TestAdminOnlyRequiereClaveValida(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/api/participantes", nil)
+	request.Header.Set("X-Admin-Key", "incorrecta")
+	handler := AdminOnly("clave-segura", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }))
+	handler.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("código obtenido %d; se esperaba %d", recorder.Code, http.StatusUnauthorized)
 	}
 }

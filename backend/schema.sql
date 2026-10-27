@@ -1,11 +1,7 @@
--- Database schema for PixelVerse - Torneo de Videojuegos
-
+-- Esquema de base de datos para PixelVerse Event - Torneo de videojuegos
 CREATE DATABASE IF NOT EXISTS `pixelverse_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `pixelverse_db`;
 
---
--- Estructura de tabla: carreras
---
 CREATE TABLE IF NOT EXISTS `carreras` (
     `id_carrera` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `nombre` VARCHAR(120) NOT NULL,
@@ -13,9 +9,6 @@ CREATE TABLE IF NOT EXISTS `carreras` (
     UNIQUE KEY `uq_carreras_nombre` (`nombre`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Estructura de tabla: juegos
---
 CREATE TABLE IF NOT EXISTS `juegos` (
     `id_juego` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `nombre` VARCHAR(60) NOT NULL,
@@ -23,13 +16,9 @@ CREATE TABLE IF NOT EXISTS `juegos` (
     UNIQUE KEY `uq_juegos_nombre` (`nombre`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Estructura de tabla: participantes
---
 CREATE TABLE IF NOT EXISTS `participantes` (
     `id_participante` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `nombre` VARCHAR(60) NOT NULL,
-    `apellidos` VARCHAR(80) NOT NULL,
+    `nombre_completo` VARCHAR(60) NOT NULL,
     `matricula` VARCHAR(20) NOT NULL,
     `id_carrera` INT(10) UNSIGNED NOT NULL,
     `cuatrimestre` TINYINT(3) UNSIGNED NOT NULL,
@@ -43,9 +32,6 @@ CREATE TABLE IF NOT EXISTS `participantes` (
     CONSTRAINT `fk_participantes_carrera` FOREIGN KEY (`id_carrera`) REFERENCES `carreras` (`id_carrera`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Estructura de tabla: inscripciones
---
 CREATE TABLE IF NOT EXISTS `inscripciones` (
     `id_inscripcion` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `id_participante` INT(10) UNSIGNED NOT NULL,
@@ -59,14 +45,11 @@ CREATE TABLE IF NOT EXISTS `inscripciones` (
     CONSTRAINT `fk_inscripciones_participante` FOREIGN KEY (`id_participante`) REFERENCES `participantes` (`id_participante`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Estructura de vista: vista_inscripciones
---
 CREATE OR REPLACE VIEW `vista_inscripciones` AS
 SELECT
     `i`.`id_inscripcion` AS `id_inscripcion`,
     `j`.`nombre` AS `juego`,
-    CONCAT(`p`.`nombre`, ' ', `p`.`apellidos`) AS `participante`,
+    `p`.`nombre_completo` AS `participante`,
     `p`.`matricula` AS `matricula`,
     `c`.`nombre` AS `carrera`,
     `p`.`cuatrimestre` AS `cuatrimestre`,
