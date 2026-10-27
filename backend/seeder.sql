@@ -23,16 +23,16 @@ INSERT INTO `juegos` (`id_juego`, `nombre`) VALUES
 (3, 'FIFA 1 vs 1'),
 (4, 'FIFA 2 vs 2');
 
-INSERT INTO `participantes` (`id_participante`, `nombre`, `apellidos`, `matricula`, `id_carrera`, `cuatrimestre`, `grupo`, `telefono`, `correo`, `fecha_registro`) VALUES
-(1, 'Ana', 'Torres Ruiz', 'EJ-0001', 1, 4, 'B', '2220000001', 'ana.ejemplo@correo.com', '2026-10-19 18:06:22'),
-(2, 'Luis', 'Hernández Pérez', 'EJ-0002', 1, 4, 'B', '2220000002', 'luis.ejemplo@correo.com', '2026-10-19 18:06:22'),
-(3, 'María', 'García López', 'EJ-0003', 2, 5, 'A', '2220000003', NULL, '2026-10-19 18:06:22'),
-(4, 'Carlos', 'Ramírez Soto', 'EJ-0004', 3, 3, 'C', '2220000004', 'carlos.ejemplo@correo.com', '2026-10-19 18:06:22'),
-(5, 'Sofía', 'Martínez Cruz', 'EJ-0005', 1, 4, 'A', '2220000005', NULL, '2026-10-19 18:06:22'),
-(6, 'Diego', 'Flores Vega', 'EJ-0006', 4, 2, 'B', '2220000006', 'diego.ejemplo@correo.com', '2026-10-19 18:06:22'),
-(7, 'Valeria', 'Morales Díaz', 'EJ-0007', 2, 5, 'B', '2220000007', NULL, '2026-10-19 18:06:22'),
-(8, 'Jorge', 'Castillo Rojas', 'EJ-0008', 5, 3, 'A', '2220000008', 'jorge.ejemplo@correo.com', '2026-10-19 18:06:22'),
-(9, 'EDUARDO ADOLFO', 'ROSAS ANDRADE', '49487894879', 1, 4, 'B', '2491000044', NULL, '2026-10-19 18:18:08');
+INSERT INTO `participantes` (`id_participante`, `nombre_completo`, `matricula`, `id_carrera`, `cuatrimestre`, `grupo`, `telefono`, `correo`, `fecha_registro`) VALUES
+(1, 'Ana Torres Ruiz', 'EJ-0001', 1, 4, 'B', '2220000001', 'ana.ejemplo@correo.com', '2026-10-19 18:06:22'),
+(2, 'Luis Hernández Pérez', 'EJ-0002', 1, 4, 'B', '2220000002', 'luis.ejemplo@correo.com', '2026-10-19 18:06:22'),
+(3, 'María García López', 'EJ-0003', 2, 5, 'A', '2220000003', NULL, '2026-10-19 18:06:22'),
+(4, 'Carlos Ramírez Soto', 'EJ-0004', 3, 3, 'C', '2220000004', 'carlos.ejemplo@correo.com', '2026-10-19 18:06:22'),
+(5, 'Sofía Martínez Cruz', 'EJ-0005', 1, 4, 'A', '2220000005', NULL, '2026-10-19 18:06:22'),
+(6, 'Diego Flores Vega', 'EJ-0006', 4, 2, 'B', '2220000006', 'diego.ejemplo@correo.com', '2026-10-19 18:06:22'),
+(7, 'Valeria Morales Díaz', 'EJ-0007', 2, 5, 'B', '2220000007', NULL, '2026-10-19 18:06:22'),
+(8, 'Jorge Castillo Rojas', 'EJ-0008', 5, 3, 'A', '2220000008', 'jorge.ejemplo@correo.com', '2026-10-19 18:06:22'),
+(9, 'EDUARDO ADOLFO ROSAS ANDRADE', '49487894879', 1, 4, 'B', '2491000044', NULL, '2026-10-19 18:18:08');
 
 INSERT INTO `inscripciones` (`id_inscripcion`, `id_participante`, `id_juego`, `fecha_inscripcion`, `asistio`) VALUES
 (1, 1, 1, '2026-10-19 12:06:22', 0),

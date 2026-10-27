@@ -17,8 +17,7 @@ import (
 var telefonoPermitido = regexp.MustCompile(`^[0-9+(). -]+$`)
 
 type RegistrarParticipanteRequest struct {
-	Nombre       string `json:"nombre"`
-	Apellidos    string `json:"apellidos"`
+	NombreCompleto       string `json:"nombre_completo"`
 	Matricula    string `json:"matricula"`
 	IDCarrera    int    `json:"id_carrera"`
 	Cuatrimestre int    `json:"cuatrimestre"`
@@ -80,7 +79,7 @@ func RegistrarParticipante(db *sql.DB) http.HandlerFunc {
 			if req.Correo != "" {
 				correo = req.Correo
 			}
-			result, insertErr := tx.ExecContext(r.Context(), "INSERT INTO participantes (nombre, apellidos, matricula, id_carrera, cuatrimestre, grupo, telefono, correo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", req.Nombre, req.Apellidos, req.Matricula, req.IDCarrera, req.Cuatrimestre, req.Grupo, req.Telefono, correo)
+			result, insertErr := tx.ExecContext(r.Context(), "INSERT INTO participantes (nombre_completo, matricula, id_carrera, cuatrimestre, grupo, telefono, correo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", req.NombreCompleto, req.Matricula, req.IDCarrera, req.Cuatrimestre, req.Grupo, req.Telefono, correo)
 			if insertErr != nil {
 				switch mysqlErrorCode(insertErr) {
 				case 1062:
@@ -150,23 +149,17 @@ func findExistingParticipant(r *http.Request, tx *sql.Tx, req RegistrarParticipa
 
 // validateRegistrarParticipante normaliza y valida todos los campos según el esquema MySQL.
 func validateRegistrarParticipante(req *RegistrarParticipanteRequest) []string {
-	req.Nombre = strings.TrimSpace(req.Nombre)
-	req.Apellidos = strings.TrimSpace(req.Apellidos)
+	req.NombreCompleto = strings.TrimSpace(req.NombreCompleto)
 	req.Matricula = strings.TrimSpace(req.Matricula)
 	req.Grupo = strings.TrimSpace(req.Grupo)
 	req.Telefono = strings.TrimSpace(req.Telefono)
 	req.Correo = strings.TrimSpace(req.Correo)
 
 	var validationErrors []string
-	if req.Nombre == "" {
+	if req.NombreCompleto == "" {
 		validationErrors = append(validationErrors, "El campo 'nombre' es obligatorio.")
-	} else if utf8.RuneCountInString(req.Nombre) > 60 {
+	} else if utf8.RuneCountInString(req.NombreCompleto) > 60 {
 		validationErrors = append(validationErrors, "El campo 'nombre' no puede superar 60 caracteres.")
-	}
-	if req.Apellidos == "" {
-		validationErrors = append(validationErrors, "El campo 'apellidos' es obligatorio.")
-	} else if utf8.RuneCountInString(req.Apellidos) > 80 {
-		validationErrors = append(validationErrors, "El campo 'apellidos' no puede superar 80 caracteres.")
 	}
 	if req.Matricula == "" {
 		validationErrors = append(validationErrors, "El campo 'matricula' es obligatorio.")

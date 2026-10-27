@@ -18,8 +18,7 @@ CREATE TABLE IF NOT EXISTS `juegos` (
 
 CREATE TABLE IF NOT EXISTS `participantes` (
     `id_participante` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `nombre` VARCHAR(60) NOT NULL,
-    `apellidos` VARCHAR(80) NOT NULL,
+    `nombre_completo` VARCHAR(60) NOT NULL,
     `matricula` VARCHAR(20) NOT NULL,
     `id_carrera` INT(10) UNSIGNED NOT NULL,
     `cuatrimestre` TINYINT(3) UNSIGNED NOT NULL,
@@ -50,7 +49,7 @@ CREATE OR REPLACE VIEW `vista_inscripciones` AS
 SELECT
     `i`.`id_inscripcion` AS `id_inscripcion`,
     `j`.`nombre` AS `juego`,
-    CONCAT(`p`.`nombre`, ' ', `p`.`apellidos`) AS `participante`,
+    `p`.`nombre_completo` AS `participante`,
     `p`.`matricula` AS `matricula`,
     `c`.`nombre` AS `carrera`,
     `p`.`cuatrimestre` AS `cuatrimestre`,
