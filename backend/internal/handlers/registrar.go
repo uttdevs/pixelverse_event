@@ -141,7 +141,7 @@ func findExistingParticipant(r *http.Request, tx *sql.Tx, req RegistrarParticipa
 	if err != nil {
 		return 0, err
 	}
-	if nombre != req.Nombre || apellidos != req.Apellidos || matricula != req.Matricula || idCarrera != req.IDCarrera || cuatrimestre != req.Cuatrimestre || grupo != req.Grupo || telefono != req.Telefono || (req.Correo != "" && correo != req.Correo) {
+	if nombre != req.NombreCompleto || matricula != req.Matricula || idCarrera != req.IDCarrera || cuatrimestre != req.Cuatrimestre || grupo != req.Grupo || telefono != req.Telefono || (req.Correo != "" && correo != req.Correo) {
 		return 0, errParticipantDataMismatch
 	}
 	return id, nil

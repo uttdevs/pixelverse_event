@@ -44,18 +44,21 @@ func envOrDefault(key, fallback string) string {
 
 // DSN construye una cadena de conexión MySQL escapando correctamente los parámetros.
 func (c Config) DSN() string {
-	return (&mysqlDriver.Config{
-		User:         c.User,
-		Passwd:       c.Password,
-		Net:          "tcp",
-		Addr:         net.JoinHostPort(c.Host, c.Port),
-		DBName:       c.DBName,
-		ParseTime:    true,
-		Loc:          time.Local,
-		Timeout:      5 * time.Second,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	}).FormatDSN()
+	cfg := mysqlDriver.NewConfig()
+	cfg.User = c.User
+	cfg.Passwd = c.Password
+	cfg.Net = "tcp"
+	cfg.Addr = net.JoinHostPort(c.Host, c.Port)
+	cfg.DBName = c.DBName
+	cfg.ParseTime = true
+	cfg.Loc = time.Local
+	cfg.Timeout = 5 * time.Second
+	cfg.ReadTimeout = 10 * time.Second
+	cfg.WriteTimeout = 10 * time.Second
+	cfg.AllowNativePasswords = true
+	cfg.Collation = "utf8mb4_unicode_ci"
+
+	return cfg.FormatDSN()
 }
 
 // Connect crea el pool de conexiones de MySQL.
