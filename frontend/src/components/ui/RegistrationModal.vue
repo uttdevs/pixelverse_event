@@ -10,11 +10,16 @@
  * 4. Atrapamiento de foco accesible (Focus Trap) para navegación con teclado (Tab/Shift+Tab).
  * 5. Autoenfoque en el primer campo al abrirse el diálogo.
  * 6. Iconos vectoriales de Lucide: X, Check.
+ *
+ * INTEGRACIÓN CON LA API:
+ * - La lógica de catálogos y envío vive en `composables/useRegistrationForm.js`
+ *   (compartida con `views/RegisterView.vue`).
  */
 
-import { reactive, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { X, Check } from 'lucide-vue-next'
 import { useAudioSfx } from '../../composables/useAudioSfx'
+import { useRegistrationForm } from '../../composables/useRegistrationForm'
 
 const props = defineProps({
   isOpen: {
@@ -23,7 +28,7 @@ const props = defineProps({
   },
   initialGame: {
     type: String,
-    default: 'Valorant: Protocol'
+    default: ''
   }
 })
 
@@ -35,29 +40,42 @@ const modalRef = ref(null)
 const firstInputRef = ref(null)
 let previousActiveElement = null
 
-const form = reactive({
-  squadName: '',
-  game: props.initialGame,
-  discord: '',
-  tier: 'Diamante+'
-})
+const {
+  carreras,
+  juegos,
+  isLoadingCatalogs,
+  catalogError,
+  hasCatalogs,
+  loadCatalogs,
+  form,
+  isSubmitted,
+  isSubmitting,
+  submitError,
+  submitErrorDetails,
+  registration,
+  selectedGameName,
+  preselectInitialGame,
+  clearErrors,
+  resetForm,
+  submit
+} = useRegistrationForm({ initialGame: () => props.initialGame })
 
-const isSubmitted = ref(false)
-const generatedToken = ref('')
-
-watch(() => props.initialGame, (newGame) => {
-  if (newGame) {
-    form.game = newGame
-  }
-})
+watch(() => props.initialGame, () => preselectInitialGame())
 
 // Control de apertura/cierre, scroll lock y gestión de foco
 watch(() => props.isOpen, async (isOpen) => {
   if (isOpen) {
-    isSubmitted.value = false
+    if (isSubmitted.value) resetForm()
+    clearErrors()
     previousActiveElement = document.activeElement
     // Bloqueamos el scroll de la página de fondo
     document.body.style.overflow = 'hidden'
+
+    if (!hasCatalogs.value) {
+      loadCatalogs()
+    } else {
+      preselectInitialGame()
+    }
 
     await nextTick()
     if (firstInputRef.value) {
@@ -90,7 +108,7 @@ const handleKeyDown = (event) => {
   // 2. Focus Trap con tecla Tab
   if (event.key === 'Tab' && modalRef.value) {
     const focusableElements = modalRef.value.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button:not([disabled]), [href], input, select:not([disabled]), textarea, [tabindex]:not([tabindex="-1"])'
     )
     if (!focusableElements.length) return
 
@@ -115,6 +133,7 @@ const handleKeyDown = (event) => {
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
+  loadCatalogs()
 })
 
 onUnmounted(() => {
@@ -122,15 +141,10 @@ onUnmounted(() => {
   document.body.style.overflow = ''
 })
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   playClickSound()
-  generatedToken.value = 'PV-2026-' + Math.floor(1000 + Math.random() * 9000)
-  isSubmitted.value = true
-
-  emit('registered', {
-    ...form,
-    token: generatedToken.value
-  })
+  const result = await submit()
+  if (result) emit('registered', result)
 }
 </script>
 
@@ -146,7 +160,7 @@ const handleSubmit = () => {
   >
     <div
       ref="modalRef"
-      class="gradient-border rounded-2xl max-w-lg w-full p-6 sm:p-8 bg-cyber-card border border-cyber-blue/50 box-glow-combo relative"
+      class="gradient-border rounded-2xl max-w-lg w-full max-h-[95vh] overflow-y-auto p-6 sm:p-8 bg-cyber-card border border-cyber-blue/50 box-glow-combo relative"
     >
       <!-- Botón de Cerrar (X) -->
       <button
@@ -175,144 +189,218 @@ const handleSubmit = () => {
         @submit.prevent="handleSubmit"
         class="space-y-4"
       >
-        <!-- Nombre del Squad -->
+        <!-- Error al cargar catálogos -->
+        <div
+          v-if="catalogError"
+          class="p-3 rounded-lg bg-cyber-pink/10 border border-cyber-pink/40 text-xs text-cyber-pink flex items-center justify-between gap-3"
+          role="alert"
+        >
+          <span>{{ catalogError }}</span>
+          <button
+            type="button"
+            @click="loadCatalogs"
+            class="px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white uppercase font-orbitron text-[10px] cursor-pointer"
+          >
+            Reintentar
+          </button>
+        </div>
+
+        <!-- Nombre completo -->
         <div>
-          <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
-            NOMBRE COMPLETO
+          <label for="reg-nombre" class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+            NOMBRE COMPLETO *
           </label>
           <input
+            id="reg-nombre"
             ref="firstInputRef"
-            v-model="form.squadName"
+            v-model="form.nombre_completo"
             type="text"
             required
+            maxlength="60"
+            autocomplete="name"
             placeholder="Ej: FRIDA MENDEZ MONTIEL"
             class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-blue focus:outline-none text-sm text-white font-orbitron"
           />
         </div>
 
-        <!-- Selección de Arena y Discord -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Juego -->
           <div>
-            <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+            <label for="reg-juego" class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
               ARENA DE JUEGO *
             </label>
             <select
-              v-model="form.game"
-              class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-blue focus:outline-none text-sm text-white font-rajdhani"
+              id="reg-juego"
+              v-model.number="form.juego_id"
+              required
+              :disabled="isLoadingCatalogs || !juegos.length"
+              class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-blue focus:outline-none text-sm text-white font-rajdhani disabled:opacity-50"
             >
-              <option value="Valorant: Protocol">FIFA 2026</option>
-              <option value="League of Pixels">THE KING OF FIGHTERS</option>
-              <option value="CS2: Cyber Strike">STREET FIGHTER</option>
-            
+              <option :value="null" disabled>
+                {{ isLoadingCatalogs ? 'Cargando...' : 'Selecciona un juego' }}
+              </option>
+              <option v-for="juego in juegos" :key="juego.id_juego" :value="juego.id_juego">
+                {{ juego.nombre }}
+              </option>
             </select>
           </div>
 
+          <!-- Matrícula -->
           <div>
-            <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
-              Matrícula 
+            <label for="reg-matricula" class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+              Matrícula *
             </label>
             <input
-              v-model="form.discord"
+              id="reg-matricula"
+              v-model="form.matricula"
               type="text"
               required
+              maxlength="20"
               placeholder="Ej: 25378039"
               class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-purple focus:outline-none text-sm text-white"
             />
           </div>
+
+          <!-- Correo (opcional) -->
           <div>
-            <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
-              Correo electrónico 
+            <label for="reg-correo" class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+              Correo electrónico
             </label>
             <input
-              v-model="form.discord"
-              type="text"
-              required
-              placeholder="Ej: Frid@gmail.com"
+              id="reg-correo"
+              v-model="form.correo"
+              type="email"
+              maxlength="100"
+              autocomplete="email"
+              placeholder="Ej: nombre@alumno.edu.mx"
               class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-purple focus:outline-none text-sm text-white"
             />
           </div>
-          
+
+          <!-- Cuatrimestre -->
           <div>
-            <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
-              Cuatrimestre
+            <label for="reg-cuatrimestre" class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+              Cuatrimestre *
             </label>
             <input
-              v-model="form.discord"
-              type="text"
+              id="reg-cuatrimestre"
+              v-model.number="form.cuatrimestre"
+              type="number"
               required
+              min="1"
+              max="12"
+              step="1"
               placeholder="Ej: 4"
               class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-purple focus:outline-none text-sm text-white"
             />
           </div>
+
+          <!-- Grupo -->
           <div>
-            <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
-              Grupo
+            <label for="reg-grupo" class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+              Grupo *
             </label>
             <input
-              v-model="form.discord"
+              id="reg-grupo"
+              v-model="form.grupo"
               type="text"
               required
+              maxlength="5"
               placeholder="Ej: B"
+              class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-purple focus:outline-none text-sm text-white uppercase"
+            />
+          </div>
+
+          <!-- Teléfono -->
+          <div>
+            <label for="reg-telefono" class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+              Teléfono *
+            </label>
+            <input
+              id="reg-telefono"
+              v-model="form.telefono"
+              type="tel"
+              required
+              maxlength="15"
+              pattern="[0-9+(). \-]{10,15}"
+              title="Entre 10 y 15 dígitos. Se permiten +, espacios, paréntesis, puntos o guiones."
+              autocomplete="tel"
+              placeholder="Ej: 2361829323"
               class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-purple focus:outline-none text-sm text-white"
             />
           </div>
-           <div>
-            <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
-              CARRERA 
+
+          <!-- Carrera -->
+          <div class="sm:col-span-2">
+            <label for="reg-carrera" class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
+              CARRERA *
             </label>
             <select
-              v-model="form.game"
-              class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-blue focus:outline-none text-sm text-white font-rajdhani"
-            >
-              <option value="Valorant: Protocol">Tecnologias de la informacion </option>
-              <option value="League of Pixels">THE KING OF FIGHTERS</option>
-              <option value="CS2: Cyber Strike">STREET FIGHTER</option>
-            
-            </select>
-          </div>
-          <div>
-            <label class="block font-rajdhani text-xs uppercase tracking-wider text-gray-300 mb-1">
-              Teléfono
-            </label>
-            <input
-              v-model="form.discord"
-              type="text"
+              id="reg-carrera"
+              v-model.number="form.id_carrera"
               required
-              placeholder="Ej: 236 182 9323"
-              class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-purple focus:outline-none text-sm text-white"
-            />
+              :disabled="isLoadingCatalogs || !carreras.length"
+              class="w-full px-4 py-3 rounded-lg bg-cyber-dark border border-white/15 focus:border-cyber-blue focus:outline-none text-sm text-white font-rajdhani disabled:opacity-50"
+            >
+              <option :value="null" disabled>
+                {{ isLoadingCatalogs ? 'Cargando...' : 'Selecciona tu carrera' }}
+              </option>
+              <option v-for="carrera in carreras" :key="carrera.id_carrera" :value="carrera.id_carrera">
+                {{ carrera.nombre }}
+              </option>
+            </select>
           </div>
         </div>
 
-        
+        <!-- Errores devueltos por la API -->
+        <div
+          v-if="submitError"
+          class="p-3 rounded-lg bg-cyber-pink/10 border border-cyber-pink/40 text-xs text-cyber-pink space-y-1"
+          role="alert"
+          aria-live="assertive"
+        >
+          <p class="font-bold">{{ submitError }}</p>
+          <ul v-if="submitErrorDetails.length" class="list-disc list-inside space-y-0.5">
+            <li v-for="(detail, index) in submitErrorDetails" :key="index">{{ detail }}</li>
+          </ul>
+        </div>
 
         <!-- Botón de Envío -->
         <div class="pt-3">
           <button
+            id="reg-submit"
             type="submit"
-            class="w-full cyber-clip py-4 bg-gradient-to-r from-cyber-blue to-cyber-purple font-orbitron font-black text-sm text-cyber-dark uppercase tracking-wider hover:opacity-95 transition cursor-pointer"
+            :disabled="isSubmitting || isLoadingCatalogs || !!catalogError"
+            class="w-full cyber-clip py-4 bg-gradient-to-r from-cyber-blue to-cyber-purple font-orbitron font-black text-sm text-cyber-dark uppercase tracking-wider hover:opacity-95 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            CONFIRMAR LUGAR EN LA ARENA
+            {{ isSubmitting ? 'ENVIANDO REGISTRO...' : 'CONFIRMAR LUGAR EN LA ARENA' }}
           </button>
         </div>
       </form>
 
       <!-- VISTA 2: Mensaje de Registro Exitoso -->
-      <div v-else class="text-center py-6 space-y-4">
+      <div v-else class="text-center py-6 space-y-4" aria-live="polite">
         <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-emerald-400 text-3xl">
           <Check class="w-8 h-8" />
         </div>
 
-        <h4 class="font-orbitron font-bold text-xl text-white">¡SQUAD REGISTRADO CON ÉXITO!</h4>
+        <h4 class="font-orbitron font-bold text-xl text-white uppercase">
+          ¡{{ registration?.message || 'Registro completado con éxito' }}!
+        </h4>
         
         <p class="text-xs text-gray-300 max-w-sm mx-auto leading-relaxed">
-          El escuadrón <strong class="text-white">"{{ form.squadName }}"</strong> ha quedado pre-registrado en la arena
-          <strong class="text-cyber-blue">{{ form.game }}</strong>. Enviamos confirmación al capitán ({{ form.discord }}).
+          <strong class="text-white">{{ form.nombre_completo }}</strong> quedó inscrito en la arena
+          <strong class="text-cyber-blue">{{ selectedGameName }}</strong>.
         </p>
 
-        <div class="p-3 rounded-lg bg-cyber-dark border border-cyber-blue/30 font-mono text-xs text-cyber-blue">
-          TOKEN DE ACCESO: <span class="font-bold text-white">{{ generatedToken }}</span>
-        </div>
+        <dl class="p-3 rounded-lg bg-cyber-dark border border-cyber-blue/30 font-mono text-xs text-cyber-blue grid grid-cols-2 gap-y-1 text-left">
+          <dt>FOLIO DE INSCRIPCIÓN:</dt>
+          <dd class="font-bold text-white text-right">#{{ registration?.id_inscripcion }}</dd>
+          <dt>MATRÍCULA:</dt>
+          <dd class="font-bold text-white text-right">{{ registration?.matricula }}</dd>
+          <dt>ID PARTICIPANTE:</dt>
+          <dd class="font-bold text-white text-right">{{ registration?.id_participante }}</dd>
+        </dl>
 
         <button
           @click="handleClose"
