@@ -1,6 +1,7 @@
 -- Esquema de base de datos para PixelVerse Event - Torneo de videojuegos
-CREATE DATABASE IF NOT EXISTS `pixelverse_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `pixelverse_db`;
+-- (Opcional en local) Descomenta las siguientes dos líneas si necesitas crear la BD desde cero:
+-- CREATE DATABASE IF NOT EXISTS `pixelverse_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- USE `pixelverse_db`;
 
 CREATE TABLE IF NOT EXISTS `carreras` (
     `id_carrera` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
