@@ -37,7 +37,7 @@ func TestRegistrarParticipanteRechazaJSONInvalido(t *testing.T) {
 }
 
 func TestRegistrarParticipanteRechazaDatosInvalidosAntesDeAccederADB(t *testing.T) {
-	payload := `{"nombre":"","apellidos":"","matricula":"","id_carrera":0,"cuatrimestre":0,"grupo":"","telefono":"abc","juego_id":0}`
+	payload := `{"nombre_completo":"","matricula":"","id_carrera":0,"cuatrimestre":0,"grupo":"","telefono":"abc","juego_id":0}`
 	recorder := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodPost, "/api/participantes", bytes.NewBufferString(payload))
 	request.Header.Set("Content-Type", "application/json")

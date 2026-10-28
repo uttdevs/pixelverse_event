@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"net/http"
 	"net/mail"
 	"regexp"
@@ -70,6 +71,7 @@ func RegistrarParticipante(db *sql.DB) http.HandlerFunc {
 				writeJSON(w, http.StatusConflict, ErrorResponse{Status: "error", Message: "La matrícula ya existe con datos diferentes. Verifica la información o contacta al organizador."})
 				return
 			}
+			log.Printf("[handlers.RegistrarParticipante] Error verificando matrícula: %v", err)
 			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo verificar la matrícula"})
 			return
 		}
@@ -79,7 +81,7 @@ func RegistrarParticipante(db *sql.DB) http.HandlerFunc {
 			if req.Correo != "" {
 				correo = req.Correo
 			}
-			result, insertErr := tx.ExecContext(r.Context(), "INSERT INTO participantes (nombre_completo, matricula, id_carrera, cuatrimestre, grupo, telefono, correo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", req.NombreCompleto, req.Matricula, req.IDCarrera, req.Cuatrimestre, req.Grupo, req.Telefono, correo)
+			result, insertErr := tx.ExecContext(r.Context(), "INSERT INTO participantes (nombre_completo, matricula, id_carrera, cuatrimestre, grupo, telefono, correo) VALUES (?, ?, ?, ?, ?, ?, ?)", req.NombreCompleto, req.Matricula, req.IDCarrera, req.Cuatrimestre, req.Grupo, req.Telefono, correo)
 			if insertErr != nil {
 				switch mysqlErrorCode(insertErr) {
 				case 1062:
@@ -87,12 +89,14 @@ func RegistrarParticipante(db *sql.DB) http.HandlerFunc {
 				case 1452:
 					writeJSON(w, http.StatusUnprocessableEntity, ErrorResponse{Status: "error", Message: "La carrera seleccionada no existe"})
 				default:
+					log.Printf("[handlers.RegistrarParticipante] Error insertando participante: %v", insertErr)
 					writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo registrar al participante"})
 				}
 				return
 			}
 			idParticipante, err = result.LastInsertId()
 			if err != nil {
+				log.Printf("[handlers.RegistrarParticipante] Error obteniendo LastInsertId de participante: %v", err)
 				writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo recuperar el identificador del participante"})
 				return
 			}
@@ -106,6 +110,7 @@ func RegistrarParticipante(db *sql.DB) http.HandlerFunc {
 			case 1452:
 				writeJSON(w, http.StatusUnprocessableEntity, ErrorResponse{Status: "error", Message: "El juego seleccionado no existe"})
 			default:
+				log.Printf("[handlers.RegistrarParticipante] Error registrando inscripcion: %v", err)
 				writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo registrar la inscripción"})
 			}
 			return
@@ -113,10 +118,12 @@ func RegistrarParticipante(db *sql.DB) http.HandlerFunc {
 
 		idInscripcion, err := inscripcionResult.LastInsertId()
 		if err != nil {
+			log.Printf("[handlers.RegistrarParticipante] Error obteniendo LastInsertId de inscripcion: %v", err)
 			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo recuperar el identificador de la inscripción"})
 			return
 		}
 		if err := tx.Commit(); err != nil {
+			log.Printf("[handlers.RegistrarParticipante] Error en tx.Commit: %v", err)
 			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo confirmar el registro"})
 			return
 		}
@@ -135,13 +142,13 @@ var errParticipantDataMismatch = errors.New("la matrícula ya existe con otros d
 // findExistingParticipant busca una matrícula dentro de la transacción y comprueba que coincidan los datos obligatorios.
 func findExistingParticipant(r *http.Request, tx *sql.Tx, req RegistrarParticipanteRequest) (int64, error) {
 	var id int64
-	var nombre, apellidos, matricula, grupo, telefono, correo string
+	var nombreCompleto, matricula, grupo, telefono, correo string
 	var idCarrera, cuatrimestre int
-	err := tx.QueryRowContext(r.Context(), "SELECT id_participante, nombre, apellidos, matricula, id_carrera, cuatrimestre, grupo, telefono, COALESCE(correo, '') FROM participantes WHERE matricula = ? FOR UPDATE", req.Matricula).Scan(&id, &nombre, &apellidos, &matricula, &idCarrera, &cuatrimestre, &grupo, &telefono, &correo)
+	err := tx.QueryRowContext(r.Context(), "SELECT id_participante, nombre_completo, matricula, id_carrera, cuatrimestre, grupo, telefono, COALESCE(correo, '') FROM participantes WHERE matricula = ? FOR UPDATE", req.Matricula).Scan(&id, &nombreCompleto, &matricula, &idCarrera, &cuatrimestre, &grupo, &telefono, &correo)
 	if err != nil {
 		return 0, err
 	}
-	if nombre != req.NombreCompleto || matricula != req.Matricula || idCarrera != req.IDCarrera || cuatrimestre != req.Cuatrimestre || grupo != req.Grupo || telefono != req.Telefono || (req.Correo != "" && correo != req.Correo) {
+	if nombreCompleto != req.NombreCompleto || matricula != req.Matricula || idCarrera != req.IDCarrera || cuatrimestre != req.Cuatrimestre || grupo != req.Grupo || telefono != req.Telefono || (req.Correo != "" && correo != req.Correo) {
 		return 0, errParticipantDataMismatch
 	}
 	return id, nil
