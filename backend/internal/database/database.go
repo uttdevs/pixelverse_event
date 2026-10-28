@@ -13,12 +13,13 @@ import (
 
 // Config almacena los parámetros de conexión de la base de datos MySQL.
 type Config struct {
-	Driver   string
-	Host     string
-	Port     string
-	User     string
-	Password string
-	DBName   string
+	Driver          string
+	Host            string
+	Port            string
+	User            string
+	Password        string
+	DBName          string
+	MultiStatements bool
 }
 
 // NewConfigFromEnv lee la configuración desde variables de entorno.
@@ -57,6 +58,7 @@ func (c Config) DSN() string {
 	cfg.WriteTimeout = 10 * time.Second
 	cfg.AllowNativePasswords = true
 	cfg.Collation = "utf8mb4_unicode_ci"
+	cfg.MultiStatements = c.MultiStatements
 
 	return cfg.FormatDSN()
 }
