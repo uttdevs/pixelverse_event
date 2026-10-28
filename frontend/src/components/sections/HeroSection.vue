@@ -3,20 +3,39 @@
  * ============================================================================
  * COMPONENTE: HeroSection.vue (Sección Principal y Reloj de Cuenta Regresiva)
  * ============================================================================
+ * Sincronizado dinámicamente con la base de datos vía /api/config
  * Utiliza Lucide icons:
  * - Clock, Crosshair, ShieldCheck, Trophy, Headphones
  */
 
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { Clock, Crosshair, ShieldCheck, Trophy, Headphones, Heading1 } from 'lucide-vue-next'
+import { Clock, Crosshair, ShieldCheck, Trophy, Headphones } from 'lucide-vue-next'
 import { useAudioSfx } from '../../composables/useAudioSfx'
 import TrophyHologram from './TrophyHologram.vue'
 
 const emit = defineEmits(['open-modal'])
 const { playHoverSound, playClickSound } = useAudioSfx()
 
-const totalSeconds = ref((4 * 86400) + (18 * 3600) + (42 * 60) + 19)
+// Fecha fallback: 27 de noviembre de 2026 10:00:00
+const DEFAULT_EVENT_DATE = '2026-11-27T10:00:00'
+const targetTimestamp = ref(new Date(DEFAULT_EVENT_DATE).getTime())
+const registrationsOpen = ref(false)
+const serverOffset = ref(0)
+const totalSeconds = ref(0)
 let timerInterval = null
+
+const calculateRemainingSeconds = () => {
+  if (!targetTimestamp.value) return 0
+  const now = Date.now() + serverOffset.value
+  return Math.max(0, Math.floor((targetTimestamp.value - now) / 1000))
+}
+
+const updateCountdown = () => {
+  totalSeconds.value = calculateRemainingSeconds()
+  if (totalSeconds.value <= 0 && timerInterval) {
+    clearInterval(timerInterval)
+  }
+}
 
 const days = computed(() => {
   const d = Math.floor(totalSeconds.value / 86400)
@@ -38,14 +57,39 @@ const seconds = computed(() => {
   return String(s).padStart(2, '0')
 })
 
-onMounted(() => {
-  timerInterval = setInterval(() => {
-    if (totalSeconds.value > 0) {
-      totalSeconds.value--
-    } else if (timerInterval) {
-      clearInterval(timerInterval)
+const fetchConfig = async () => {
+  try {
+    const res = await fetch('/api/config')
+    const contentType = res.headers.get('content-type') || ''
+    if (res.ok && contentType.includes('application/json')) {
+      const data = await res.json()
+      if (data.fecha_evento) {
+        targetTimestamp.value = new Date(data.fecha_evento).getTime()
+      }
+      if (data.hora_servidor) {
+        const serverTime = new Date(data.hora_servidor).getTime()
+        serverOffset.value = serverTime - Date.now()
+      }
+      if (data.registros_abiertos !== undefined) {
+        registrationsOpen.value = (
+          data.registros_abiertos === true ||
+          data.registros_abiertos === 1 ||
+          data.registros_abiertos === 'true' ||
+          data.registros_abiertos === '1'
+        )
+      }
     }
-  }, 1000)
+  } catch (err) {
+    console.warn('No se pudo conectar a la API de configuración, usando fallback local:', err)
+  } finally {
+    updateCountdown()
+  }
+}
+
+onMounted(() => {
+  updateCountdown()
+  fetchConfig()
+  timerInterval = setInterval(updateCountdown, 1000)
 })
 
 onUnmounted(() => {
@@ -55,11 +99,10 @@ onUnmounted(() => {
 })
 
 const handleRegisterClick = () => {
+  if (!registrationsOpen.value) return
   playClickSound()
   emit('open-modal')
 }
-
-
 </script>
 
 <template>
@@ -84,11 +127,9 @@ const handleRegisterClick = () => {
             </span>
           </h1>
 
-
           <!-- Resumen del Torneo -->
           <p class="text-gray-300 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 font-light leading-relaxed">
-         <strong class="text-cyber-blue font-semibold"></strong> Los rivales están listos y ha llegado tu momento de demostrar de qué estás hecho. Desafía tus límites, libera tu potencial y lucha por convertirte en una leyenda. ⚡ 
-        
+            <strong class="text-cyber-blue font-semibold"></strong> Los rivales están listos y ha llegado tu momento de demostrar de qué estás hecho. Desafía tus límites, libera tu potencial y lucha por convertirte en una leyenda. ⚡ 
             <span class="text-white font-semibold underline decoration-cyber-purple">¡Inscríbete ahora, asegura tu lugar y prepárate! La gloria espera a quienes se atreven a jugar. ¿Tienes lo necesario para dejar tu huella?👑🔥</span>.
           </p>
 
@@ -100,11 +141,11 @@ const handleRegisterClick = () => {
             </p>
             <div class="grid grid-cols-4 gap-3 max-w-md mx-auto lg:mx-0">
               <div class="gradient-border rounded-xl p-3 text-center">
-                <span class="font-orbitron font-bold text-2xl sm:text-3xl text-cyber-blue block">{{ 2}}</span>
+                <span class="font-orbitron font-bold text-2xl sm:text-3xl text-cyber-blue block">{{ days }}</span>
                 <span class="font-rajdhani text-xs text-gray-400 uppercase tracking-widest">Días</span>
               </div>
               <div class="gradient-border rounded-xl p-3 text-center">
-                <span class="font-orbitron font-bold text-2xl sm:text-3xl text-white block">{{ 1 }}</span>
+                <span class="font-orbitron font-bold text-2xl sm:text-3xl text-white block">{{ hours }}</span>
                 <span class="font-rajdhani text-xs text-gray-400 uppercase tracking-widest">Horas</span>
               </div>
               <div class="gradient-border rounded-xl p-3 text-center">
@@ -121,18 +162,30 @@ const handleRegisterClick = () => {
           <!-- Botones de Acción (CTA) -->
           <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
             <button
+              :disabled="!registrationsOpen"
               @click="handleRegisterClick"
-              @mouseenter="playHoverSound"
+              @mouseenter="registrationsOpen && playHoverSound()"
               type="button"
-              class="w-full sm:w-auto cyber-clip bg-gradient-to-r from-cyber-blue to-cyber-purple hover:from-cyber-purple hover:to-cyber-blue text-cyber-dark font-orbitron font-black text-sm px-8 py-4 tracking-wider uppercase transition transform hover:-translate-y-0.5 animate-glow flex items-center justify-center gap-3 cursor-pointer"
+              :class="[
+                'w-full sm:w-auto cyber-clip font-orbitron font-black text-sm px-8 py-4 tracking-wider uppercase transition flex items-center justify-center gap-3',
+                registrationsOpen
+                  ? 'bg-gradient-to-r from-cyber-blue to-cyber-purple hover:from-cyber-purple hover:to-cyber-blue text-cyber-dark transform hover:-translate-y-0.5 animate-glow cursor-pointer'
+                  : 'bg-white/10 text-gray-400 border border-white/10 cursor-not-allowed opacity-60'
+              ]"
             >
-              <Crosshair class="w-5 h-5 text-cyber-dark" />
-              REGISTRAR MI EQUIPO
+              <Crosshair class="w-5 h-5" :class="registrationsOpen ? 'text-cyber-dark' : 'text-gray-400'" />
+              <span>{{ registrationsOpen ? 'REGISTRAR MI EQUIPO' : 'INSCRIPCIONES CERRADAS' }}</span>
             </button>
-           
-          </div>
 
-         
+            <!-- Indicador secundario cuando las inscripciones están cerradas -->
+            <div
+              v-if="!registrationsOpen"
+              class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-cyber-pink/10 border border-cyber-pink/30 text-cyber-pink font-rajdhani font-semibold text-xs tracking-widest uppercase"
+            >
+              <span class="w-2 h-2 rounded-full bg-cyber-pink animate-ping"></span>
+              PRÓXIMAMENTE
+            </div>
+          </div>
 
         </div>
 

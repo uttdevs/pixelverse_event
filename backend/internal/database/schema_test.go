@@ -71,7 +71,7 @@ func TestCargarSchema(t *testing.T) {
 	}
 
 	// Verificar existencia de cada tabla
-	tablasEsperadas := []string{"carreras", "juegos", "participantes", "inscripciones"}
+	tablasEsperadas := []string{"carreras", "juegos", "participantes", "inscripciones", "evento_config"}
 	for _, tabla := range tablasEsperadas {
 		var count int
 		query := fmt.Sprintf("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '%s'", tabla)

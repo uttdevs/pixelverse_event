@@ -6,9 +6,13 @@ TRUNCATE TABLE `inscripciones`;
 TRUNCATE TABLE `participantes`;
 TRUNCATE TABLE `juegos`;
 TRUNCATE TABLE `carreras`;
+TRUNCATE TABLE `evento_config`;
 SET FOREIGN_KEY_CHECKS = 1;
 
 START TRANSACTION;
+
+INSERT INTO `evento_config` (`id`, `fecha_evento`, `registros_abiertos`) VALUES
+(1, '2026-11-27 10:00:00', 0);
 
 INSERT INTO `carreras` (`id_carrera`, `nombre`) VALUES
 (1, 'Ingeniería en Tecnologías de la Información e Innovación Digital'),
