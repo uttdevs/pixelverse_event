@@ -144,7 +144,7 @@ const navigateToSection = (sectionId) => {
         type="button"
         class="w-full py-3 rounded bg-gradient-to-r from-cyber-blue to-cyber-purple font-orbitron font-bold text-sm text-cyber-dark uppercase cursor-pointer"
       >
-        INSCRIBIR SQUAD AHORA
+        INSCRIBIRSE AHORA
       </button>
     </div>
   </header>

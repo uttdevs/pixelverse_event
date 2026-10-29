@@ -33,9 +33,9 @@ import RegistrationModal from './components/ui/RegistrationModal.vue'
 // ESTADO REACTIVO CENTRAL (Single Source of Truth)
 // ----------------------------------------------------------------------------
 const isModalOpen = ref(false)
-const selectedGameForModal = ref('Valorant: Protocol')
-const registeredSquadsCount = ref(118)
-const maxSquadsCount = 128
+const selectedGameForModal = ref('FIFA 2026')
+const registeredParticipantsCount = ref(54)
+const maxParticipantsCount = 96
 
 // ----------------------------------------------------------------------------
 // MANEJADORES DE EVENTOS
@@ -44,7 +44,7 @@ const handleOpenModal = (gameName) => {
   if (gameName && typeof gameName === 'string') {
     selectedGameForModal.value = gameName
   } else {
-    selectedGameForModal.value = 'Valorant: Protocol'
+    selectedGameForModal.value = 'FIFA 2026'
   }
   isModalOpen.value = true
 }
@@ -53,10 +53,10 @@ const handleCloseModal = () => {
   isModalOpen.value = false
 }
 
-const handleSquadRegistered = (squadData) => {
-  console.log('[Pixel Verse] Nuevo escuadrón registrado:', squadData)
-  if (registeredSquadsCount.value < maxSquadsCount) {
-    registeredSquadsCount.value++
+const handleParticipantRegistered = (participantData) => {
+  console.log('[Pixel Verse] Nuevo participante registrado:', participantData)
+  if (registeredParticipantsCount.value < maxParticipantsCount) {
+    registeredParticipantsCount.value++
   }
 }
 </script>
@@ -69,8 +69,8 @@ const handleSquadRegistered = (squadData) => {
 
     <!-- 2. Barra Superior de Telemetría Gamer (Global) -->
     <HudBar
-      :squads-count="registeredSquadsCount"
-      :max-squads="maxSquadsCount"
+      :participants-count="registeredParticipantsCount"
+      :max-participants="maxParticipantsCount"
     />
 
     <!-- 3. Navegación Principal y Logotipo (Global) -->
@@ -81,19 +81,19 @@ const handleSquadRegistered = (squadData) => {
       <!-- RouterView renderiza HomeView, RulesView o RegisterView según la URL -->
       <RouterView
         @open-modal="handleOpenModal"
-        @registered="handleSquadRegistered"
+        @registered="handleParticipantRegistered"
       />
     </main>
 
     <!-- 5. Pie de Página y Redes Sociales (Global) -->
     <AppFooter />
 
-    <!-- 6. Modal de Registro de Escuadrón (Global y Accesible con A11y) -->
+    <!-- 6. Modal de Registro de Participante (Global y Accesible con A11y) -->
     <RegistrationModal
       :is-open="isModalOpen"
       :initial-game="selectedGameForModal"
       @close="handleCloseModal"
-      @registered="handleSquadRegistered"
+      @registered="handleParticipantRegistered"
     />
 
   </div>

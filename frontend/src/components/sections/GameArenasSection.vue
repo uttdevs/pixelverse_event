@@ -130,15 +130,15 @@ const handleJoinArena = (arenaName) => {
             <!-- Barra de Progreso de Cupos Disponibles -->
             <div class="mt-5">
               <div class="flex justify-between text-xs font-rajdhani mb-1">
-                <span class="text-gray-400">SQUADS INSCRITOS</span>
+                <span class="text-gray-400">PARTICIPANTES INSCRITOS</span>
                 <span class="text-cyber-blue font-bold">
-                  {{ arena.registeredSquads }} / {{ arena.totalSlots }} EQUIPOS
+                  {{ arena.registeredParticipants || 0 }} / {{ arena.totalSlots || 32 }} JUGADORES
                 </span>
               </div>
               <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
                 <div
                   class="h-full bg-gradient-to-r from-cyber-blue to-cyber-purple transition-all duration-500"
-                  :style="{ width: `${(arena.registeredSquads / arena.totalSlots) * 100}%` }"
+                  :style="{ width: `${((arena.registeredParticipants || 0) / (arena.totalSlots || 32)) * 100}%` }"
                 ></div>
               </div>
             </div>

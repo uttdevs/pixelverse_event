@@ -5,7 +5,7 @@
  * Define la navegación multi-página de la aplicación:
  * - `/`: Landing page oficial (HomeView) con todas las secciones del torneo.
  * - `/reglamento`: Vista dedicada con las reglas oficiales, requisitos y código de conducta.
- * - `/registro`: Vista dedicada de pantalla completa para el registro de escuadrones.
+ * - `/registro`: Vista dedicada de pantalla completa para el registro de participantes.
  * 
  * Además soporta navegación suave hacia anclas hash (ej. /#juegos, /#premios).
  */
@@ -32,7 +32,7 @@ const routes = [
     path: '/registro',
     name: 'register',
     component: RegisterView,
-    meta: { title: 'Inscripción de Squad // Pixel Verse 2026' }
+    meta: { title: 'Inscripción de Participante // Pixel Verse 2026' }
   },
   {
     path: '/:pathMatch(.*)*',

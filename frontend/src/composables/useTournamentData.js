@@ -18,7 +18,8 @@ export function useTournamentData() {
       formatBadge: 'Inscripción : $ 30',
       prize: '',
       description:'El fútbol se juega con talento y se gana con estrategia.¡Controla el balón y domina la cancha! ',
-     
+      registeredParticipants: 22,
+      totalSlots: 32,
       iconType: 'crosshair',
       accentColor: 'cyber-blue',
       glowClass: 'hover:box-glow-blue',
@@ -32,7 +33,8 @@ export function useTournamentData() {
       formatBadge: 'Inscripción : $ 20',
       prize: '',
       description: 'Solo los más fuertes sobreviven a la arena, perfecciona tus combos y demuestra tu dominio en combates.¡Entra en combate y demuestra quien merece el trono!',
-     
+      registeredParticipants: 18,
+      totalSlots: 32,
       iconType: 'flame',
       accentColor: 'cyber-purple',
       glowClass: 'hover:box-glow-purple',
@@ -46,14 +48,14 @@ export function useTournamentData() {
       formatBadge: 'Inscripción : $ 20',
       prize: '',
       description: '¡Un rival,una batalla y una leyenda!.Demuestra tu habilidad frente a los mejores combatientes,cada ronda es una prueba de técnica y concentración.',
-      
+      registeredParticipants: 14,
+      totalSlots: 32,
       iconType: 'bomb',
       accentColor: 'cyber-blue',
       glowClass: 'hover:box-glow-blue',
       bgGradient: 'from-blue-950 via-slate-900 to-cyber-dark',
       buttonText: 'UNIRSE A LA ARENA'
     },
-  
   ]
 
   const categories = [

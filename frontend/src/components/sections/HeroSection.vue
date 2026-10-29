@@ -16,9 +16,8 @@ import TrophyHologram from './TrophyHologram.vue'
 const emit = defineEmits(['open-modal'])
 const { playHoverSound, playClickSound } = useAudioSfx()
 
-// Fecha fallback: 27 de noviembre de 2026 10:00:00
-const DEFAULT_EVENT_DATE = '2026-11-27T10:00:00'
-const targetTimestamp = ref(new Date(DEFAULT_EVENT_DATE).getTime())
+// Sincronizado dinámicamente con /api/config. Si el servidor no responde, permanece en 0.
+const targetTimestamp = ref(null)
 const registrationsOpen = ref(false)
 const serverOffset = ref(0)
 const totalSeconds = ref(0)
@@ -34,6 +33,7 @@ const updateCountdown = () => {
   totalSeconds.value = calculateRemainingSeconds()
   if (totalSeconds.value <= 0 && timerInterval) {
     clearInterval(timerInterval)
+    timerInterval = null
   }
 }
 
@@ -61,40 +61,57 @@ const fetchConfig = async () => {
   try {
     const res = await fetch('/api/config')
     const contentType = res.headers.get('content-type') || ''
-    if (res.ok && contentType.includes('application/json')) {
-      const data = await res.json()
-      if (data.fecha_evento) {
-        targetTimestamp.value = new Date(data.fecha_evento).getTime()
-      }
-      if (data.hora_servidor) {
-        const serverTime = new Date(data.hora_servidor).getTime()
-        serverOffset.value = serverTime - Date.now()
-      }
-      if (data.registros_abiertos !== undefined) {
-        registrationsOpen.value = (
-          data.registros_abiertos === true ||
-          data.registros_abiertos === 1 ||
-          data.registros_abiertos === 'true' ||
-          data.registros_abiertos === '1'
-        )
-      }
+    if (!res.ok || !contentType.includes('application/json')) {
+      throw new Error(`Respuesta inválida del servidor (${res.status})`)
+    }
+
+    const data = await res.json()
+    if (data.fecha_evento) {
+      targetTimestamp.value = new Date(data.fecha_evento).getTime()
+    } else {
+      targetTimestamp.value = null
+    }
+
+    if (data.hora_servidor) {
+      const serverTime = new Date(data.hora_servidor).getTime()
+      serverOffset.value = serverTime - Date.now()
+    }
+
+    if (data.registros_abiertos !== undefined) {
+      registrationsOpen.value = (
+        data.registros_abiertos === true ||
+        data.registros_abiertos === 1 ||
+        data.registros_abiertos === 'true' ||
+        data.registros_abiertos === '1'
+      )
+    }
+
+    updateCountdown()
+    if (totalSeconds.value > 0) {
+      if (timerInterval) clearInterval(timerInterval)
+      timerInterval = setInterval(updateCountdown, 1000)
     }
   } catch (err) {
-    console.warn('No se pudo conectar a la API de configuración, usando fallback local:', err)
-  } finally {
-    updateCountdown()
+    console.warn('El servidor no respondió o falló /api/config, countdown establecido a 0:', err)
+    targetTimestamp.value = null
+    totalSeconds.value = 0
+    registrationsOpen.value = false
+    if (timerInterval) {
+      clearInterval(timerInterval)
+      timerInterval = null
+    }
   }
 }
 
 onMounted(() => {
-  updateCountdown()
+  totalSeconds.value = 0
   fetchConfig()
-  timerInterval = setInterval(updateCountdown, 1000)
 })
 
 onUnmounted(() => {
   if (timerInterval) {
     clearInterval(timerInterval)
+    timerInterval = null
   }
 })
 
@@ -116,7 +133,7 @@ const handleRegisterClick = () => {
           <!-- Badge de Temporada Oficial -->
           <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-cyber-purple/15 border border-cyber-purple/50 text-cyber-blue font-rajdhani font-semibold text-sm tracking-widest uppercase box-glow-purple">
             <span class="w-2 h-2 rounded-full bg-cyber-pink animate-ping"></span>
-            TEMPORADA OFICIAL // LA BATALLA COMIENZA AQUÍ
+            UNETE AHORA!
           </div>
 
           <!-- Título Principal con Gradiente y Efecto Glitch -->
@@ -137,7 +154,7 @@ const handleRegisterClick = () => {
           <div class="pt-2">
             <p class="font-rajdhani text-xs tracking-[0.25em] text-gray-400 uppercase mb-3 flex items-center justify-center lg:justify-start gap-1.5">
               <Clock class="w-4 h-4 text-cyber-blue" />
-              <span>EL CHECK-IN CIERRA EN:</span>
+              <span>LAS INSCRIPCIONES CIERRAN EN:</span>
             </p>
             <div class="grid grid-cols-4 gap-3 max-w-md mx-auto lg:mx-0">
               <div class="gradient-border rounded-xl p-3 text-center">
@@ -174,7 +191,7 @@ const handleRegisterClick = () => {
               ]"
             >
               <Crosshair class="w-5 h-5" :class="registrationsOpen ? 'text-cyber-dark' : 'text-gray-400'" />
-              <span>{{ registrationsOpen ? 'REGISTRAR MI EQUIPO' : 'INSCRIPCIONES CERRADAS' }}</span>
+              <span>{{ registrationsOpen ? 'INSCRIBIRME AHORA' : 'INSCRIPCIONES CERRADAS' }}</span>
             </button>
 
             <!-- Indicador secundario cuando las inscripciones están cerradas -->
