@@ -20,4 +20,6 @@ const app = createApp(App)
 // Conectamos el enrutador a la aplicación
 app.use(router)
 
-app.mount('#app')
+// Esperamos a que se resuelva la ruta inicial (incluidas las vistas diferidas como /admin)
+// para que App.vue elija el layout correcto desde el primer render.
+router.isReady().then(() => app.mount('#app'))

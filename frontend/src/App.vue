@@ -15,10 +15,13 @@
  *    y `RegistrationModal` permanecen montados en todo momento. La navegación
  *    entre páginas no recarga el navegador ni interrumpe la animación del canvas
  *    ni la música/sonido.
+ * 3. Layout administrativo:
+ *    Las rutas con `meta.layout === 'admin'` (ej. `/admin`) se renderizan solas,
+ *    sin el layout público, para ofrecer una interfaz de gestión independiente.
  */
 
-import { ref } from 'vue'
-import { RouterView } from 'vue-router'
+import { computed, ref } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 
 // Componentes de Layout Global
 import ParticleBackground from './components/layout/ParticleBackground.vue'
@@ -36,6 +39,9 @@ const isModalOpen = ref(false)
 const selectedGameForModal = ref('FIFA 2026')
 const registeredParticipantsCount = ref(54)
 const maxParticipantsCount = 96
+
+const route = useRoute()
+const isAdminLayout = computed(() => route.meta.layout === 'admin')
 
 // ----------------------------------------------------------------------------
 // MANEJADORES DE EVENTOS
@@ -62,7 +68,12 @@ const handleParticipantRegistered = (participantData) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-cyber-dark text-white selection:bg-cyber-blue selection:text-cyber-dark flex flex-col justify-between">
+  <!-- Layout administrativo independiente (ruta /admin) -->
+  <div v-if="isAdminLayout" class="min-h-screen bg-cyber-dark text-white selection:bg-cyber-blue selection:text-cyber-dark">
+    <RouterView />
+  </div>
+
+  <div v-else class="min-h-screen bg-cyber-dark text-white selection:bg-cyber-blue selection:text-cyber-dark flex flex-col justify-between">
     
     <!-- 1. Fondo de Partículas Interactivas en Canvas (Global) -->
     <ParticleBackground />
