@@ -96,3 +96,25 @@ func TestAdminOnlyProtegeUpdateEventConfig(t *testing.T) {
 		t.Errorf("esperaba %d con clave correcta; obtuvo %d", http.StatusOK, rec3.Code)
 	}
 }
+
+func TestGetEventConfigRetornaErrorConDBNil(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/api/config", nil)
+
+	GetEventConfig(nil)(recorder, request)
+	if recorder.Code != http.StatusInternalServerError {
+		t.Errorf("esperaba %d con db nil; obtuvo %d", http.StatusInternalServerError, recorder.Code)
+	}
+}
+
+func TestUpdateEventConfigRetornaErrorConDBNil(t *testing.T) {
+	payload := `{"fecha_evento":"2026-11-27T10:00:00"}`
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPut, "/api/config", bytes.NewBufferString(payload))
+	request.Header.Set("Content-Type", "application/json")
+
+	UpdateEventConfig(nil)(recorder, request)
+	if recorder.Code != http.StatusInternalServerError {
+		t.Errorf("esperaba %d con db nil; obtuvo %d", http.StatusInternalServerError, recorder.Code)
+	}
+}

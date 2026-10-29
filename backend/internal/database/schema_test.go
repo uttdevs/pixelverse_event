@@ -168,4 +168,13 @@ func TestCargarSeeder(t *testing.T) {
 	if totalVista == 0 {
 		t.Errorf("vista_inscripciones debería devolver registros combinados")
 	}
+
+	// 8. Validar evento_config clave-valor
+	var totalConfig int
+	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM evento_config").Scan(&totalConfig); err != nil {
+		t.Fatalf("Error al contar registros de evento_config: %v", err)
+	}
+	if totalConfig < 2 {
+		t.Errorf("Se esperaban al menos 2 parámetros de configuración clave-valor, se obtuvieron: %d", totalConfig)
+	}
 }

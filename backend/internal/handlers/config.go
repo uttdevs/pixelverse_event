@@ -47,21 +47,36 @@ func GetEventConfig(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		var fechaEvento time.Time
-		var registrosAbiertos bool
-
-		err := db.QueryRowContext(r.Context(), "SELECT fecha_evento, registros_abiertos FROM evento_config WHERE id = 1").Scan(&fechaEvento, &registrosAbiertos)
-		if errors.Is(err, sql.ErrNoRows) {
-			writeJSON(w, http.StatusOK, EventConfigResponse{
-				FechaEvento:       "2026-11-27T10:00:00Z",
-				RegistrosAbiertos: false,
-				HoraServidor:      time.Now().UTC().Format(time.RFC3339),
-			})
-			return
-		}
+		rows, err := db.QueryContext(r.Context(), "SELECT clave, valor FROM evento_config")
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo consultar la configuración del evento"})
 			return
+		}
+		defer rows.Close()
+
+		configMap := make(map[string]string)
+		for rows.Next() {
+			var k, v string
+			if err := rows.Scan(&k, &v); err == nil {
+				configMap[k] = v
+			}
+		}
+
+		var fechaEvento time.Time
+		if rawDate, exists := configMap["fecha_evento"]; exists && strings.TrimSpace(rawDate) != "" {
+			if parsed, err := parseEventDate(rawDate); err == nil {
+				fechaEvento = parsed
+			} else {
+				fechaEvento = time.Date(2026, 11, 27, 10, 0, 0, 0, time.UTC)
+			}
+		} else {
+			fechaEvento = time.Date(2026, 11, 27, 10, 0, 0, 0, time.UTC)
+		}
+
+		registrosAbiertos := false
+		if rawReg, exists := configMap["registros_abiertos"]; exists {
+			raw := strings.TrimSpace(strings.ToLower(rawReg))
+			registrosAbiertos = (raw == "1" || raw == "true" || raw == "si" || raw == "yes")
 		}
 
 		writeJSON(w, http.StatusOK, EventConfigResponse{
@@ -95,19 +110,41 @@ func UpdateEventConfig(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		var fechaActual time.Time
-		var registrosActuales bool
-		err := db.QueryRowContext(r.Context(), "SELECT fecha_evento, registros_abiertos FROM evento_config WHERE id = 1").Scan(&fechaActual, &registrosActuales)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		rows, err := db.QueryContext(r.Context(), "SELECT clave, valor FROM evento_config")
+		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "Error al consultar la configuración actual"})
 			return
+		}
+		defer rows.Close()
+
+		configMap := make(map[string]string)
+		for rows.Next() {
+			var k, v string
+			if err := rows.Scan(&k, &v); err == nil {
+				configMap[k] = v
+			}
+		}
+
+		var fechaActual time.Time
+		if rawDate, exists := configMap["fecha_evento"]; exists && strings.TrimSpace(rawDate) != "" {
+			if parsed, err := parseEventDate(rawDate); err == nil {
+				fechaActual = parsed
+			} else {
+				fechaActual = time.Date(2026, 11, 27, 10, 0, 0, 0, time.Local)
+			}
+		} else {
+			fechaActual = time.Date(2026, 11, 27, 10, 0, 0, 0, time.Local)
+		}
+
+		registrosActuales := false
+		if rawReg, exists := configMap["registros_abiertos"]; exists {
+			raw := strings.TrimSpace(strings.ToLower(rawReg))
+			registrosActuales = (raw == "1" || raw == "true" || raw == "si" || raw == "yes")
 		}
 
 		nuevaFecha := fechaActual
 		if parsedDate != nil {
 			nuevaFecha = *parsedDate
-		} else if errors.Is(err, sql.ErrNoRows) {
-			nuevaFecha = time.Date(2026, 11, 27, 10, 0, 0, 0, time.Local)
 		}
 
 		nuevosRegistros := registrosActuales
@@ -115,13 +152,38 @@ func UpdateEventConfig(db *sql.DB) http.HandlerFunc {
 			nuevosRegistros = *req.RegistrosAbiertos
 		}
 
-		query := `
-			INSERT INTO evento_config (id, fecha_evento, registros_abiertos)
-			VALUES (1, ?, ?)
-			ON DUPLICATE KEY UPDATE fecha_evento = VALUES(fecha_evento), registros_abiertos = VALUES(registros_abiertos)`
+		tx, err := db.BeginTx(r.Context(), nil)
+		if err != nil {
+			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo iniciar la transacción"})
+			return
+		}
+		defer tx.Rollback()
 
-		if _, err := db.ExecContext(r.Context(), query, nuevaFecha, nuevosRegistros); err != nil {
-			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo actualizar la configuración del evento"})
+		upsertQuery := `
+			INSERT INTO evento_config (clave, valor)
+			VALUES (?, ?)
+			ON DUPLICATE KEY UPDATE valor = VALUES(valor)`
+
+		if parsedDate != nil {
+			if _, err := tx.ExecContext(r.Context(), upsertQuery, "fecha_evento", nuevaFecha.Format("2006-01-02 15:04:05")); err != nil {
+				writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo actualizar la fecha del evento"})
+				return
+			}
+		}
+
+		if req.RegistrosAbiertos != nil {
+			val := "0"
+			if nuevosRegistros {
+				val = "1"
+			}
+			if _, err := tx.ExecContext(r.Context(), upsertQuery, "registros_abiertos", val); err != nil {
+				writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo actualizar el estado de registros"})
+				return
+			}
+		}
+
+		if err := tx.Commit(); err != nil {
+			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo confirmar la actualización"})
 			return
 		}
 

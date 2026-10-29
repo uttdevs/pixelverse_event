@@ -47,11 +47,9 @@ CREATE TABLE IF NOT EXISTS `inscripciones` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `evento_config` (
-    `id` TINYINT UNSIGNED NOT NULL DEFAULT 1,
-    `fecha_evento` DATETIME NOT NULL,
-    `registros_abiertos` TINYINT(1) NOT NULL DEFAULT 0,
-    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
+    `clave` VARCHAR(64) NOT NULL,
+    `valor` TEXT NOT NULL,
+    PRIMARY KEY (`clave`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE OR REPLACE VIEW `vista_inscripciones` AS
