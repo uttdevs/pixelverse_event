@@ -58,6 +58,9 @@ func main() {
 	mux.Handle("PUT /api/config", handlers.AdminOnly(adminKey, handlers.UpdateEventConfig(db)))
 	mux.Handle("GET /api/participantes", handlers.AdminOnly(adminKey, handlers.GetParticipantes(db)))
 	mux.Handle("GET /api/inscripciones", handlers.AdminOnly(adminKey, handlers.GetInscripciones(db)))
+	mux.Handle("GET /api/inscripciones/export", handlers.AdminOnly(adminKey, handlers.ExportInscripciones(db)))
+	mux.Handle("PATCH /api/inscripciones/{id}", handlers.AdminOnly(adminKey, handlers.UpdateInscripcion(db)))
+	mux.Handle("DELETE /api/inscripciones/{id}", handlers.AdminOnly(adminKey, handlers.DeleteInscripcion(db)))
 
 	server := &http.Server{
 		Addr:              ":" + port,
