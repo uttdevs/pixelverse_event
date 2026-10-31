@@ -27,7 +27,7 @@ RUN if [ -f pnpm-lock.yaml ]; then \
 # ============================================================
 # Stage 2: BUILD BACKEND — compila el binario Go
 # ============================================================
-FROM golang:1.24-alpine AS backend
+FROM golang:1.25-alpine AS backend
 
 WORKDIR /build
 
