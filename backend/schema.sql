@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS `carreras` (
 CREATE TABLE IF NOT EXISTS `juegos` (
     `id_juego` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `nombre` VARCHAR(60) NOT NULL,
+    `descripcion` VARCHAR(255) NOT NULL DEFAULT '',
+    `costo_inscripcion` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    `cupos_maximos` INT(10) UNSIGNED DEFAULT NULL,
     PRIMARY KEY (`id_juego`),
     UNIQUE KEY `uq_juegos_nombre` (`nombre`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -59,6 +59,30 @@ func main() {
 	mux.Handle("GET /api/participantes", handlers.AdminOnly(adminKey, handlers.GetParticipantes(db)))
 	mux.Handle("GET /api/inscripciones", handlers.AdminOnly(adminKey, handlers.GetInscripciones(db)))
 
+	// En producción, sirve los archivos estáticos del frontend (dist/ compilado por Vite).
+	// Para rutas que no coincidan con /api ni con un archivo existente, devuelve index.html
+	// para que vue-router maneje la navegación del lado del cliente (SPA fallback).
+	staticDir := os.Getenv("STATIC_DIR")
+	if staticDir == "" {
+		staticDir = "./static"
+	}
+	if info, err := os.Stat(staticDir); err == nil && info.IsDir() {
+		fs := http.Dir(staticDir)
+		fileServer := http.FileServer(fs)
+		mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+			// Si el archivo existe, servirlo directamente (JS, CSS, imágenes, favicon).
+			path := r.URL.Path
+			if f, err := fs.Open(path); err == nil {
+				f.Close()
+				fileServer.ServeHTTP(w, r)
+				return
+			}
+			// SPA fallback: cualquier otra ruta devuelve index.html.
+			http.ServeFile(w, r, staticDir+"/index.html")
+		})
+		log.Printf("Sirviendo frontend estático desde %s", staticDir)
+	}
+
 	server := &http.Server{
 		Addr:              ":" + port,
 		Handler:           mux,
