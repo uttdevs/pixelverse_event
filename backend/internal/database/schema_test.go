@@ -52,10 +52,30 @@ func getTestDB(t *testing.T) *sql.DB {
 	return db
 }
 
+func cleanTestDatabase(t *testing.T, db *sql.DB) {
+	t.Helper()
+	cleanup := `
+		SET FOREIGN_KEY_CHECKS = 0;
+		DROP VIEW IF EXISTS vista_inscripciones;
+		DROP TABLE IF EXISTS inscripciones;
+		DROP TABLE IF EXISTS participantes;
+		DROP TABLE IF EXISTS juegos;
+		DROP TABLE IF EXISTS carreras;
+		DROP TABLE IF EXISTS evento_config;
+		SET FOREIGN_KEY_CHECKS = 1;
+	`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if _, err := db.ExecContext(ctx, cleanup); err != nil {
+		t.Fatalf("Error limpiando tablas previas en el test: %v", err)
+	}
+}
+
 // TestCargarSchema verifica que schema.sql se ejecute correctamente y cree las tablas y vistas.
 func TestCargarSchema(t *testing.T) {
 	db := getTestDB(t)
 	defer db.Close()
+	cleanTestDatabase(t, db)
 
 	schemaPath := findSQLFile(t, "schema.sql")
 	content, err := os.ReadFile(schemaPath)
@@ -98,6 +118,7 @@ func TestCargarSchema(t *testing.T) {
 func TestCargarSeeder(t *testing.T) {
 	db := getTestDB(t)
 	defer db.Close()
+	cleanTestDatabase(t, db)
 
 	// 1. Asegurar esquema previo
 	schemaPath := findSQLFile(t, "schema.sql")
@@ -138,8 +159,8 @@ func TestCargarSeeder(t *testing.T) {
 	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM juegos").Scan(&totalJuegos); err != nil {
 		t.Fatalf("Error al contar juegos: %v", err)
 	}
-	if totalJuegos != 4 {
-		t.Errorf("Se esperaban 4 juegos en el catálogo, se obtuvieron: %d", totalJuegos)
+	if totalJuegos != 3 {
+		t.Errorf("Se esperaban 3 juegos en el catálogo, se obtuvieron: %d", totalJuegos)
 	}
 
 	// 5. Validar participantes

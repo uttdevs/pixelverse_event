@@ -5,22 +5,27 @@
  * ============================================================================
  * Emplea:
  * - Iconos vectoriales de Lucide (Crosshair, Flame, Bomb, Shield, Coins).
- * - Directiva v-for para renderizar las 3 arenas oficiales.
+ * - Directiva v-for para renderizar las 3 arenas oficiales sincronizadas con la BD.
  * - Emisión de evento open-modal con preselección de arena.
  */
 
+import { onMounted } from 'vue'
 import { Crosshair, Flame, Bomb, Shield, Coins } from 'lucide-vue-next'
 import { useTournamentData } from '../../composables/useTournamentData'
 import { useAudioSfx } from '../../composables/useAudioSfx'
 
 const emit = defineEmits(['open-modal'])
 
-const { gameArenas } = useTournamentData()
+const { gameArenas, loadArenas } = useTournamentData()
 const { playHoverSound, playClickSound } = useAudioSfx()
 
-const handleJoinArena = (arenaName) => {
+onMounted(() => {
+  loadArenas()
+})
+
+const handleJoinArena = (arena) => {
   playClickSound()
-  emit('open-modal', arenaName)
+  emit('open-modal', arena.id_juego || arena.name)
 }
 </script>
 
@@ -93,20 +98,12 @@ const handleJoinArena = (arenaName) => {
               {{ arena.description }}
             </p>
 
-            <!-- Barra de Progreso de Cupos Disponibles -->
-            <div class="mt-5">
-              <div class="flex justify-between text-xs font-rajdhani mb-1">
-                <span class="text-gray-400">PARTICIPANTES INSCRITOS</span>
-                <span class="text-cyber-blue font-bold">
-                  {{ arena.registeredParticipants || 0 }} / {{ arena.totalSlots || 32 }} JUGADORES
-                </span>
-              </div>
-              <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  class="h-full bg-gradient-to-r from-cyber-blue to-cyber-purple transition-all duration-500"
-                  :style="{ width: `${((arena.registeredParticipants || 0) / (arena.totalSlots || 32)) * 100}%` }"
-                ></div>
-              </div>
+            <!-- Participantes Inscritos (Sin tope de cupo) -->
+            <div class="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-rajdhani">
+              <span class="text-gray-400 tracking-wider uppercase">PARTICIPANTES INSCRITOS</span>
+              <span class="text-cyber-blue font-bold tracking-widest text-sm">
+                {{ arena.registeredParticipants || 0 }} JUGADORES
+              </span>
             </div>
           </div>
         </div>
@@ -114,7 +111,7 @@ const handleJoinArena = (arenaName) => {
         <!-- Botón de Inscripción -->
         <div class="px-6 pb-6">
           <button
-            @click="handleJoinArena(arena.name)"
+            @click="handleJoinArena(arena)"
             type="button"
             class="w-full py-2.5 rounded-lg bg-cyber-blue/10 hover:bg-cyber-blue hover:text-cyber-dark border border-cyber-blue/50 text-cyber-blue font-orbitron font-bold text-xs uppercase tracking-wider transition cursor-pointer"
           >

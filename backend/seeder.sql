@@ -22,10 +22,10 @@ INSERT INTO `carreras` (`id_carrera`, `nombre`) VALUES
 (4, 'Contaduría'),
 (5, 'Otra');
 
-INSERT INTO `juegos` (`id_juego`, `nombre`) VALUES
-(1, 'King of Fighters'),
-(2, 'Street Fighter'),
-(3, 'FIFA 2026');
+INSERT INTO `juegos` (`id_juego`, `nombre`, `descripcion`, `costo_inscripcion`, `cupos_maximos`) VALUES
+(1, 'King of Fighters', 'Solo los más fuertes sobreviven a la arena, perfecciona tus combos y demuestra tu dominio en combates. ¡Entra en combate y demuestra quién merece el trono!', 20.00, NULL),
+(2, 'Street Fighter', '¡Un rival, una batalla y una leyenda! Demuestra tu habilidad frente a los mejores combatientes, cada ronda es una prueba de técnica y concentración.', 20.00, NULL),
+(3, 'FIFA 2026', 'El fútbol se juega con talento y se gana con estrategia. ¡Controla el balón y domina la cancha!', 30.00, NULL);
 
 INSERT INTO `participantes` (`id_participante`, `nombre_completo`, `matricula`, `id_carrera`, `cuatrimestre`, `grupo`, `telefono`, `correo`, `fecha_registro`) VALUES
 (1, 'Ana Torres Ruiz', 'EJ-0001', 1, 4, 'B', '2220000001', 'ana.ejemplo@correo.com', '2026-10-19 18:06:22'),
