@@ -6,9 +6,14 @@ TRUNCATE TABLE `inscripciones`;
 TRUNCATE TABLE `participantes`;
 TRUNCATE TABLE `juegos`;
 TRUNCATE TABLE `carreras`;
+TRUNCATE TABLE `evento_config`;
 SET FOREIGN_KEY_CHECKS = 1;
 
 START TRANSACTION;
+
+INSERT INTO `evento_config` (`clave`, `valor`) VALUES
+('fecha_evento', '2026-11-27 10:00:00'),
+('registros_abiertos', '0');
 
 INSERT INTO `carreras` (`id_carrera`, `nombre`) VALUES
 (1, 'Ingeniería en Tecnologías de la Información e Innovación Digital'),
@@ -20,8 +25,7 @@ INSERT INTO `carreras` (`id_carrera`, `nombre`) VALUES
 INSERT INTO `juegos` (`id_juego`, `nombre`) VALUES
 (1, 'King of Fighters'),
 (2, 'Street Fighter'),
-(3, 'FIFA 1 vs 1'),
-(4, 'FIFA 2 vs 2');
+(3, 'FIFA 2026');
 
 INSERT INTO `participantes` (`id_participante`, `nombre_completo`, `matricula`, `id_carrera`, `cuatrimestre`, `grupo`, `telefono`, `correo`, `fecha_registro`) VALUES
 (1, 'Ana Torres Ruiz', 'EJ-0001', 1, 4, 'B', '2220000001', 'ana.ejemplo@correo.com', '2026-10-19 18:06:22'),
@@ -40,8 +44,8 @@ INSERT INTO `inscripciones` (`id_inscripcion`, `id_participante`, `id_juego`, `f
 (3, 2, 2, '2026-10-19 12:06:22', 0),
 (4, 4, 2, '2026-10-19 12:06:22', 0),
 (5, 6, 3, '2026-10-19 12:06:22', 0),
-(6, 2, 4, '2026-10-19 12:06:22', 0),
-(7, 6, 4, '2026-10-19 12:06:22', 0),
+(6, 2, 1, '2026-10-19 12:06:22', 0),
+(7, 6, 1, '2026-10-19 12:06:22', 0),
 (14, 9, 1, '2026-10-19 12:18:08', 0),
 (15, 9, 2, '2026-10-20 14:49:44', 0),
 (16, 9, 3, '2026-10-20 14:49:44', 0);

@@ -1,7 +1,7 @@
 <script setup>
 /**
  * ============================================================================
- * VISTA: RegisterView.vue (Página Dedicada de Registro de Squads)
+ * VISTA: RegisterView.vue (Página Dedicada de Registro de Participantes)
  * ============================================================================
  * Vista completa para enrolamiento directo a través de la ruta `/registro`.
  * Ideal para compartir enlaces directos en Discord, Twitter o transmisiones.

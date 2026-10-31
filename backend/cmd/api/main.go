@@ -42,9 +42,10 @@ func main() {
 	mux := http.NewServeMux()
 	registrarParticipante := handlers.RegistrarParticipante(db)
 
-	// Rutas públicas: estado del servicio y catálogos utilizados por el formulario.
+	// Rutas públicas: estado del servicio, configuración y catálogos utilizados por el formulario.
 	mux.HandleFunc("GET /api/health", handlers.HealthCheck)
 	mux.HandleFunc("GET /api/ready", handlers.ReadyCheck(db))
+	mux.HandleFunc("GET /api/config", handlers.GetEventConfig(db))
 	mux.HandleFunc("GET /api/carreras", handlers.GetCarreras(db))
 	mux.HandleFunc("GET /api/juegos", handlers.GetJuegos(db))
 
@@ -52,10 +53,14 @@ func main() {
 	mux.Handle("POST /api/participantes", registrarParticipante)
 	mux.Handle("POST /api/registrar/participante", registrarParticipante)
 
-	// Las consultas que exponen datos personales requieren X-Admin-Key.
+	// Las consultas y modificaciones que requieren autorización administrativa usan X-Admin-Key.
 	adminKey := os.Getenv("ADMIN_API_KEY")
+	mux.Handle("PUT /api/config", handlers.AdminOnly(adminKey, handlers.UpdateEventConfig(db)))
 	mux.Handle("GET /api/participantes", handlers.AdminOnly(adminKey, handlers.GetParticipantes(db)))
 	mux.Handle("GET /api/inscripciones", handlers.AdminOnly(adminKey, handlers.GetInscripciones(db)))
+	mux.Handle("GET /api/inscripciones/export", handlers.AdminOnly(adminKey, handlers.ExportInscripciones(db)))
+	mux.Handle("PATCH /api/inscripciones/{id}", handlers.AdminOnly(adminKey, handlers.UpdateInscripcion(db)))
+	mux.Handle("DELETE /api/inscripciones/{id}", handlers.AdminOnly(adminKey, handlers.DeleteInscripcion(db)))
 
 	server := &http.Server{
 		Addr:              ":" + port,

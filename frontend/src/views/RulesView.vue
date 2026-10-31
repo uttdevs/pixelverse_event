@@ -49,7 +49,7 @@ const handleOpenModal = () => {
       </h1>
       
       <p class="text-gray-300 text-sm sm:text-base mt-3 max-w-3xl font-light leading-relaxed">
-        Todos los escuadrones y capitanes inscritos en Pixel Verse deben aceptar y cumplir las siguientes cláusulas técnicas, operativas y de juego limpio.
+        Todos los participantes inscritos en Pixel Verse deben aceptar y cumplir las siguientes cláusulas técnicas, operativas y de juego limpio.
       </p>
     </div>
 
@@ -88,7 +88,7 @@ const handleOpenModal = () => {
         class="cyber-clip px-8 py-4 bg-gradient-to-r from-cyber-blue to-cyber-purple text-cyber-dark font-orbitron font-black text-sm uppercase tracking-wider hover:opacity-90 transition cursor-pointer flex items-center gap-2"
       >
         <Zap class="w-4 h-4 text-cyber-dark" />
-        <span>ACEPTAR Y REGISTRAR EQUIPO</span>
+        <span>ACEPTAR E INSCRIBIRME</span>
       </button>
 
       <RouterLink

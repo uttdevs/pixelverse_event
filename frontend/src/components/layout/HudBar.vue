@@ -4,7 +4,7 @@
  * COMPONENTE: HudBar.vue (Barra Superior de Telemetría Gamer)
  * ============================================================================
  * Implementa telemetría dinámica e iconos vectoriales optimizados de Lucide:
- * - Users: Contador de escuadrones
+ * - Users: Contador de participantes
  * - Volume2 / VolumeX: Control reactivo de efectos de sonido
  */
 
@@ -13,6 +13,14 @@ import { Users, Volume2, VolumeX } from 'lucide-vue-next'
 import { useAudioSfx } from '../../composables/useAudioSfx'
 
 const props = defineProps({
+  participantsCount: {
+    type: Number,
+    default: null
+  },
+  maxParticipants: {
+    type: Number,
+    default: null
+  },
   squadsCount: {
     type: Number,
     default: 118
@@ -65,12 +73,12 @@ onUnmounted(() => {
         </span>
       </div>
 
-      <!-- Squads inscritos y conmutador de audio SFX -->
+      <!-- Participantes inscritos y conmutador de audio SFX -->
       <div class="flex items-center space-x-4 ml-auto">
         <span class="text-purple-300 flex items-center">
           <Users class="w-3.5 h-3.5 inline mr-1.5 text-cyber-purple" />
-          SQUADS REGISTRADOS:
-          <strong class="text-white ml-1">{{ props.squadsCount }} / {{ props.maxSquads }}</strong>
+          PARTICIPANTES INSCRITOS:
+          <strong class="text-white ml-1">{{ (props.participantsCount ?? props.squadsCount) }} / {{ (props.maxParticipants ?? props.maxSquads) }}</strong>
         </span>
 
         <!-- Botón de efectos de sonido -->

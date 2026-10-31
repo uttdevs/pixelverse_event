@@ -46,6 +46,12 @@ CREATE TABLE IF NOT EXISTS `inscripciones` (
     CONSTRAINT `fk_inscripciones_participante` FOREIGN KEY (`id_participante`) REFERENCES `participantes` (`id_participante`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `evento_config` (
+    `clave` VARCHAR(64) NOT NULL,
+    `valor` TEXT NOT NULL,
+    PRIMARY KEY (`clave`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE OR REPLACE VIEW `vista_inscripciones` AS
 SELECT
     `i`.`id_inscripcion` AS `id_inscripcion`,

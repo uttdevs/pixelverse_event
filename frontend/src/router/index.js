@@ -5,7 +5,9 @@
  * Define la navegación multi-página de la aplicación:
  * - `/`: Landing page oficial (HomeView) con todas las secciones del torneo.
  * - `/reglamento`: Vista dedicada con las reglas oficiales, requisitos y código de conducta.
- * - `/registro`: Vista dedicada de pantalla completa para el registro de escuadrones.
+ * - `/registro`: Vista dedicada de pantalla completa para el registro de participantes.
+ * - `/admin`: Panel administrativo oculto (sin enlaces, noindex, carga diferida y
+ *   layout propio sin cabecera ni pie de la landing).
  * 
  * Además soporta navegación suave hacia anclas hash (ej. /#juegos, /#premios).
  */
@@ -32,7 +34,14 @@ const routes = [
     path: '/registro',
     name: 'register',
     component: RegisterView,
-    meta: { title: 'Inscripción de Squad // Pixel Verse 2026' }
+    meta: { title: 'Inscripción de Participante // Pixel Verse 2026' }
+  },
+  {
+    path: '/admin',
+    name: 'admin',
+    // Carga diferida: el código del panel no forma parte del bundle público.
+    component: () => import('../views/AdminView.vue'),
+    meta: { title: 'Panel de Administración // Pixel Verse 2026', layout: 'admin', noindex: true }
   },
   {
     path: '/:pathMatch(.*)*',
@@ -62,6 +71,20 @@ const router = createRouter({
 router.afterEach((to) => {
   if (to.meta.title) {
     document.title = to.meta.title
+  }
+
+  // Evita que los buscadores indexen rutas marcadas como privadas (ej. /admin)
+  let robots = document.querySelector('meta[name="robots"][data-router]')
+  if (to.meta.noindex) {
+    if (!robots) {
+      robots = document.createElement('meta')
+      robots.setAttribute('name', 'robots')
+      robots.setAttribute('data-router', '')
+      document.head.appendChild(robots)
+    }
+    robots.setAttribute('content', 'noindex, nofollow')
+  } else if (robots) {
+    robots.remove()
   }
 })
 

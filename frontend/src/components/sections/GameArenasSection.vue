@@ -1,37 +1,22 @@
 <script setup>
 /**
  * ============================================================================
- * COMPONENTE: GameArenasSection.vue (Arenas de Juego y Filtro Interactivo)
+ * COMPONENTE: GameArenasSection.vue (Arenas de Juego Oficiales)
  * ============================================================================
  * Emplea:
  * - Iconos vectoriales de Lucide (Crosshair, Flame, Bomb, Shield, Coins).
- * - Directiva v-for y filtrado reactivo con computed().
+ * - Directiva v-for para renderizar las 3 arenas oficiales.
  * - Emisión de evento open-modal con preselección de arena.
  */
 
-import { ref, computed } from 'vue'
 import { Crosshair, Flame, Bomb, Shield, Coins } from 'lucide-vue-next'
 import { useTournamentData } from '../../composables/useTournamentData'
 import { useAudioSfx } from '../../composables/useAudioSfx'
 
 const emit = defineEmits(['open-modal'])
 
-const { gameArenas, categories } = useTournamentData()
+const { gameArenas } = useTournamentData()
 const { playHoverSound, playClickSound } = useAudioSfx()
-
-const activeCategory = ref('all')
-
-const filteredArenas = computed(() => {
-  if (activeCategory.value === 'all') {
-    return gameArenas
-  }
-  return gameArenas.filter(arena => arena.category === activeCategory.value)
-})
-
-const selectCategory = (categoryId) => {
-  playClickSound()
-  activeCategory.value = categoryId
-}
 
 const handleJoinArena = (arenaName) => {
   playClickSound()
@@ -42,39 +27,20 @@ const handleJoinArena = (arenaName) => {
 <template>
   <section id="juegos" class="relative z-10 py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     
-    <!-- Encabezado de Sección y Filtros -->
-    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-      <div>
-        <span class="font-rajdhani font-bold text-cyber-blue tracking-[0.25em] text-sm uppercase block mb-2">
-          // SELECCIONA TU CAMPO DE BATALLA
-        </span>
-        <h2 class="font-orbitron font-black text-3xl sm:text-4xl uppercase">
-          ARENAS <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyber-blue to-cyber-purple">OFICIALES</span>
-        </h2>
-      </div>
-
-      <!-- Filtro Interactivo de Categorías -->
-      <div class="flex flex-wrap gap-2" role="tablist" aria-label="Filtro de arenas por categoría">
-        <button
-          v-for="cat in categories"
-          :key="cat.id"
-          @click="selectCategory(cat.id)"
-          @mouseenter="playHoverSound"
-          type="button"
-          class="px-4 py-2 rounded-lg font-rajdhani font-bold text-sm tracking-wider uppercase transition cursor-pointer"
-          :class="activeCategory === cat.id
-            ? 'bg-gradient-to-r from-cyber-blue to-cyber-purple text-cyber-dark'
-            : 'bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10'"
-        >
-          {{ cat.label }}
-        </button>
-      </div>
+    <!-- Encabezado de Sección -->
+    <div class="mb-12">
+      <span class="font-rajdhani font-bold text-cyber-blue tracking-[0.25em] text-sm uppercase block mb-2">
+        // SELECCIONA TU CAMPO DE BATALLA
+      </span>
+      <h2 class="font-orbitron font-black text-3xl sm:text-4xl uppercase">
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyber-blue to-cyber-purple">TORNEOS</span>
+      </h2>
     </div>
 
     <!-- Rejilla de Tarjetas de Juegos (Renderizado reactivo con v-for) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
       <div
-        v-for="arena in filteredArenas"
+        v-for="arena in gameArenas"
         :key="arena.id"
         @mouseenter="playHoverSound"
         class="game-card group gradient-border rounded-2xl overflow-hidden flex flex-col justify-between transition duration-300 hover:-translate-y-2"
@@ -130,15 +96,15 @@ const handleJoinArena = (arenaName) => {
             <!-- Barra de Progreso de Cupos Disponibles -->
             <div class="mt-5">
               <div class="flex justify-between text-xs font-rajdhani mb-1">
-                <span class="text-gray-400">SQUADS INSCRITOS</span>
+                <span class="text-gray-400">PARTICIPANTES INSCRITOS</span>
                 <span class="text-cyber-blue font-bold">
-                  {{ arena.registeredSquads }} / {{ arena.totalSlots }} EQUIPOS
+                  {{ arena.registeredParticipants || 0 }} / {{ arena.totalSlots || 32 }} JUGADORES
                 </span>
               </div>
               <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
                 <div
                   class="h-full bg-gradient-to-r from-cyber-blue to-cyber-purple transition-all duration-500"
-                  :style="{ width: `${(arena.registeredSquads / arena.totalSlots) * 100}%` }"
+                  :style="{ width: `${((arena.registeredParticipants || 0) / (arena.totalSlots || 32)) * 100}%` }"
                 ></div>
               </div>
             </div>

@@ -15,10 +15,13 @@
  *    y `RegistrationModal` permanecen montados en todo momento. La navegación
  *    entre páginas no recarga el navegador ni interrumpe la animación del canvas
  *    ni la música/sonido.
+ * 3. Layout administrativo:
+ *    Las rutas con `meta.layout === 'admin'` (ej. `/admin`) se renderizan solas,
+ *    sin el layout público, para ofrecer una interfaz de gestión independiente.
  */
 
-import { ref } from 'vue'
-import { RouterView } from 'vue-router'
+import { computed, ref } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 
 // Componentes de Layout Global
 import ParticleBackground from './components/layout/ParticleBackground.vue'
@@ -33,9 +36,12 @@ import RegistrationModal from './components/ui/RegistrationModal.vue'
 // ESTADO REACTIVO CENTRAL (Single Source of Truth)
 // ----------------------------------------------------------------------------
 const isModalOpen = ref(false)
-const selectedGameForModal = ref('Valorant: Protocol')
-const registeredSquadsCount = ref(118)
-const maxSquadsCount = 128
+const selectedGameForModal = ref('FIFA 2026')
+const registeredParticipantsCount = ref(54)
+const maxParticipantsCount = 96
+
+const route = useRoute()
+const isAdminLayout = computed(() => route.meta.layout === 'admin')
 
 // ----------------------------------------------------------------------------
 // MANEJADORES DE EVENTOS
@@ -44,7 +50,7 @@ const handleOpenModal = (gameName) => {
   if (gameName && typeof gameName === 'string') {
     selectedGameForModal.value = gameName
   } else {
-    selectedGameForModal.value = 'Valorant: Protocol'
+    selectedGameForModal.value = 'FIFA 2026'
   }
   isModalOpen.value = true
 }
@@ -53,24 +59,29 @@ const handleCloseModal = () => {
   isModalOpen.value = false
 }
 
-const handleSquadRegistered = (squadData) => {
-  console.log('[Pixel Verse] Nuevo escuadrón registrado:', squadData)
-  if (registeredSquadsCount.value < maxSquadsCount) {
-    registeredSquadsCount.value++
+const handleParticipantRegistered = (participantData) => {
+  console.log('[Pixel Verse] Nuevo participante registrado:', participantData)
+  if (registeredParticipantsCount.value < maxParticipantsCount) {
+    registeredParticipantsCount.value++
   }
 }
 </script>
 
 <template>
-  <div class="min-h-screen bg-cyber-dark text-white selection:bg-cyber-blue selection:text-cyber-dark flex flex-col justify-between">
+  <!-- Layout administrativo independiente (ruta /admin) -->
+  <div v-if="isAdminLayout" class="min-h-screen bg-cyber-dark text-white selection:bg-cyber-blue selection:text-cyber-dark">
+    <RouterView />
+  </div>
+
+  <div v-else class="min-h-screen bg-cyber-dark text-white selection:bg-cyber-blue selection:text-cyber-dark flex flex-col justify-between">
     
     <!-- 1. Fondo de Partículas Interactivas en Canvas (Global) -->
     <ParticleBackground />
 
     <!-- 2. Barra Superior de Telemetría Gamer (Global) -->
     <HudBar
-      :squads-count="registeredSquadsCount"
-      :max-squads="maxSquadsCount"
+      :participants-count="registeredParticipantsCount"
+      :max-participants="maxParticipantsCount"
     />
 
     <!-- 3. Navegación Principal y Logotipo (Global) -->
@@ -81,19 +92,19 @@ const handleSquadRegistered = (squadData) => {
       <!-- RouterView renderiza HomeView, RulesView o RegisterView según la URL -->
       <RouterView
         @open-modal="handleOpenModal"
-        @registered="handleSquadRegistered"
+        @registered="handleParticipantRegistered"
       />
     </main>
 
     <!-- 5. Pie de Página y Redes Sociales (Global) -->
     <AppFooter />
 
-    <!-- 6. Modal de Registro de Escuadrón (Global y Accesible con A11y) -->
+    <!-- 6. Modal de Registro de Participante (Global y Accesible con A11y) -->
     <RegistrationModal
       :is-open="isModalOpen"
       :initial-game="selectedGameForModal"
       @close="handleCloseModal"
-      @registered="handleSquadRegistered"
+      @registered="handleParticipantRegistered"
     />
 
   </div>
