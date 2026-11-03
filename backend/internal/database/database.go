@@ -1,15 +1,16 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"time"
 
 	mysqlDriver "github.com/go-sql-driver/mysql"
 )
-
 
 // Config almacena los parámetros de conexión de la base de datos MySQL.
 type Config struct {
@@ -82,4 +83,61 @@ func Connect(cfg Config) (*sql.DB, error) {
 	db.SetConnMaxLifetime(5 * time.Minute)
 	db.SetConnMaxIdleTime(1 * time.Minute)
 	return db, nil
+}
+
+// InitializeSchema crea las tablas y vistas requeridas por la aplicación.
+func InitializeSchema(ctx context.Context, db *sql.DB) error {
+	if db == nil {
+		return fmt.Errorf("la conexión de base de datos no está inicializada")
+	}
+
+	schemaPath, err := resolveSQLFile("schema.sql")
+	if err != nil {
+		return err
+	}
+	content, err := os.ReadFile(schemaPath)
+	if err != nil {
+		return fmt.Errorf("no se pudo leer %s: %w", schemaPath, err)
+	}
+	if _, err := db.ExecContext(ctx, string(content)); err != nil {
+		return fmt.Errorf("no se pudo ejecutar %s: %w", schemaPath, err)
+	}
+	return nil
+}
+
+// LoadSeed carga explícitamente un archivo de datos semilla.
+// No se ejecuta durante el arranque porque los seeders pueden borrar datos existentes.
+func LoadSeed(ctx context.Context, db *sql.DB, seedPath string) error {
+	if db == nil {
+		return fmt.Errorf("la conexión de base de datos no está inicializada")
+	}
+	content, err := os.ReadFile(seedPath)
+	if err != nil {
+		return fmt.Errorf("no se pudo leer %s: %w", seedPath, err)
+	}
+	if _, err := db.ExecContext(ctx, string(content)); err != nil {
+		return fmt.Errorf("no se pudo ejecutar %s: %w", seedPath, err)
+	}
+	return nil
+}
+
+func resolveSQLFile(filename string) (string, error) {
+	candidates := []string{
+		filepath.Join(".", filename),
+		filepath.Join("backend", filename),
+	}
+	if executable, err := os.Executable(); err == nil {
+		executableDir := filepath.Dir(executable)
+		candidates = append(candidates,
+			filepath.Join(executableDir, filename),
+			filepath.Join(executableDir, "..", filename),
+		)
+	}
+
+	for _, candidate := range candidates {
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate, nil
+		}
+	}
+	return "", fmt.Errorf("no se encontró %s; rutas revisadas: %v", filename, candidates)
 }

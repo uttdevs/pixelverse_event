@@ -24,6 +24,7 @@ func main() {
 	}
 
 	cfg := database.NewConfigFromEnv()
+	cfg.MultiStatements = true
 	db, err := database.Connect(cfg)
 	if err != nil {
 		log.Fatalf("No se pudo inicializar la conexión con la base de datos: %v", err)
@@ -36,6 +37,13 @@ func main() {
 		log.Fatalf("No se pudo establecer conexión con MySQL: %v", err)
 	}
 	cancelPing()
+
+	schemaCtx, cancelSchema := context.WithTimeout(context.Background(), 10*time.Second)
+	if err := database.InitializeSchema(schemaCtx, db); err != nil {
+		cancelSchema()
+		log.Fatalf("No se pudo inicializar el esquema de la base de datos: %v", err)
+	}
+	cancelSchema()
 
 	mux := http.NewServeMux()
 	registrarParticipante := handlers.RegistrarParticipante(db)

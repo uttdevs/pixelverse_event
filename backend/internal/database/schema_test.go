@@ -114,7 +114,7 @@ func TestCargarSchema(t *testing.T) {
 	}
 }
 
-// TestCargarSeeder verifica que seeder.sql cargue los datos demostrativos correctamente.
+// TestCargarSeeder verifica que seeder_test.sql cargue los datos demostrativos de prueba.
 func TestCargarSeeder(t *testing.T) {
 	db := getTestDB(t)
 	defer db.Close()
@@ -135,14 +135,14 @@ func TestCargarSeeder(t *testing.T) {
 	}
 
 	// 2. Ejecutar seeder
-	seederPath := findSQLFile(t, "seeder.sql")
+	seederPath := findSQLFile(t, "seeder_test.sql")
 	seederContent, err := os.ReadFile(seederPath)
 	if err != nil {
-		t.Fatalf("Error al leer seeder.sql: %v", err)
+		t.Fatalf("Error al leer seeder_test.sql: %v", err)
 	}
 
 	if _, err := db.ExecContext(ctx, string(seederContent)); err != nil {
-		t.Fatalf("Error al ejecutar seeder.sql: %v", err)
+		t.Fatalf("Error al ejecutar seeder_test.sql: %v", err)
 	}
 
 	// 3. Validar registros de carreras
