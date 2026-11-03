@@ -36,7 +36,7 @@ import RegistrationModal from './components/ui/RegistrationModal.vue'
 // ESTADO REACTIVO CENTRAL (Single Source of Truth)
 // ----------------------------------------------------------------------------
 const isModalOpen = ref(false)
-const selectedGameForModal = ref('FIFA 2026')
+const selectedGameForModal = ref(3)
 const registeredParticipantsCount = ref(0)
 
 const route = useRoute()
@@ -45,11 +45,11 @@ const isAdminLayout = computed(() => route.meta.layout === 'admin')
 // ----------------------------------------------------------------------------
 // MANEJADORES DE EVENTOS
 // ----------------------------------------------------------------------------
-const handleOpenModal = (gameName) => {
-  if (gameName && typeof gameName === 'string') {
-    selectedGameForModal.value = gameName
+const handleOpenModal = (gameId) => {
+  if (Number.isInteger(gameId)) {
+    selectedGameForModal.value = gameId
   } else {
-    selectedGameForModal.value = 'FIFA 2026'
+    selectedGameForModal.value = 3
   }
   isModalOpen.value = true
 }
