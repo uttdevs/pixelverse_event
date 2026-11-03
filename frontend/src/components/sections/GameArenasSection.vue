@@ -9,42 +9,21 @@
  * - Emisión de evento open-modal con preselección de arena.
  */
 
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import { Crosshair, Flame, Bomb, Shield, Coins } from 'lucide-vue-next'
 import { useTournamentData } from '../../composables/useTournamentData'
 import { useAudioSfx } from '../../composables/useAudioSfx'
+import { useEventConfig } from '../../composables/useEventConfig'
 
 const emit = defineEmits(['open-modal'])
 
 const { gameArenas, loadArenas } = useTournamentData()
 const { playHoverSound, playClickSound } = useAudioSfx()
-
-const registrationsOpen = ref(false) // Estado reactivo para controlar la disponibilidad de inscripciones
-
-const fetchRegistrationStatus = async () => {
-  try {
-    const res = await fetch('/api/config')
-    const contentType = res.headers.get('content-type') || ''
-    if (!res.ok || !contentType.includes('application/json')) {
-      throw new Error(`Respuesta inválida del servidor (${res.status})`)
-    }
-    const data = await res.json()
-    registrationsOpen.value = (
-      data.registros_abiertos === true ||
-      data.registros_abiertos === 1 ||
-      data.registros_abiertos === 'true' ||
-      data.registros_abiertos === '1'
-    )
-  } catch (err) {
-    console.warn('No se pudo leer /api/config, inscripciones cerradas:', err)
-    registrationsOpen.value = false
-  }
-}
-
+const { registrationsOpen, loadConfig } = useEventConfig()
 
 onMounted(() => {
   loadArenas()
-  fetchRegistrationStatus()
+  loadConfig()
 })
 
 const handleJoinArena = (arena) => {
