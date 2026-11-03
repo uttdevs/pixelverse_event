@@ -61,7 +61,7 @@ onUnmounted(() => {
       <div class="flex items-center space-x-4">
         <span class="flex items-center text-cyber-blue">
           <span class="w-2 h-2 rounded-full bg-cyber-blue animate-ping mr-2"></span>
-          SERVER: LATAM-NORTH-01 [ONLINE]
+          SERVER: UTTECAM [ONLINE]
         </span>
         <span class="hidden sm:inline text-gray-400">|</span>
         <span class="hidden sm:inline text-gray-300">
