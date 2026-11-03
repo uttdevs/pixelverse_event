@@ -13,19 +13,23 @@ import { onMounted } from 'vue'
 import { Crosshair, Flame, Bomb, Shield, Coins } from 'lucide-vue-next'
 import { useTournamentData } from '../../composables/useTournamentData'
 import { useAudioSfx } from '../../composables/useAudioSfx'
+import { useEventConfig } from '../../composables/useEventConfig'
 
 const emit = defineEmits(['open-modal'])
 
 const { gameArenas, loadArenas } = useTournamentData()
 const { playHoverSound, playClickSound } = useAudioSfx()
+const { registrationsOpen, loadConfig } = useEventConfig()
 
 onMounted(() => {
   loadArenas()
+  loadConfig()
 })
 
 const handleJoinArena = (arena) => {
+  if (!registrationsOpen.value || !Number.isInteger(arena.id_juego)) return
   playClickSound()
-  emit('open-modal', arena.id_juego || arena.name)
+  emit('open-modal', arena.id_juego)
 }
 </script>
 
@@ -47,7 +51,7 @@ const handleJoinArena = (arena) => {
       <div
         v-for="arena in gameArenas"
         :key="arena.id"
-        @mouseenter="playHoverSound"
+        @mouseenter="registrationsOpen && playHoverSound()"
         class="game-card group gradient-border rounded-2xl overflow-hidden flex flex-col justify-between transition duration-300 hover:-translate-y-2"
         :class="arena.glowClass"
       >
@@ -112,8 +116,14 @@ const handleJoinArena = (arena) => {
         <div class="px-6 pb-6">
           <button
             @click="handleJoinArena(arena)"
+            :disabled="!registrationsOpen"
             type="button"
-            class="w-full py-2.5 rounded-lg bg-cyber-blue/10 hover:bg-cyber-blue hover:text-cyber-dark border border-cyber-blue/50 text-cyber-blue font-orbitron font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+            :class="[
+              'w-full py-2.5 rounded-lg font-orbitron font-bold text-xs uppercase tracking-wider transition',
+              registrationsOpen
+                ? 'bg-cyber-blue/10 hover:bg-cyber-blue hover:text-cyber-dark border border-cyber-blue/50 text-cyber-blue cursor-pointer'
+                : 'bg-white/10 text-gray-400 border border-white/10 cursor-not-allowed opacity-60'
+            ]"
           >
             {{ arena.buttonText }}
           </button>

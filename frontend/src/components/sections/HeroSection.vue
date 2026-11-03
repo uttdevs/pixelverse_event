@@ -11,22 +11,20 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Clock, Crosshair, ShieldCheck, Trophy, Headphones } from 'lucide-vue-next'
 import { useAudioSfx } from '../../composables/useAudioSfx'
+import { useEventConfig } from '../../composables/useEventConfig'
 import TrophyHologram from './TrophyHologram.vue'
 
 const emit = defineEmits(['open-modal'])
 const { playHoverSound, playClickSound } = useAudioSfx()
 
-// Sincronizado dinámicamente con /api/config. Si el servidor no responde, permanece en 0.
-const targetTimestamp = ref(null)
-const registrationsOpen = ref(false)
-const serverOffset = ref(0)
+const { eventTimestamp, registrationsOpen, serverOffset, loadConfig } = useEventConfig()
 const totalSeconds = ref(0)
 let timerInterval = null
 
 const calculateRemainingSeconds = () => {
-  if (!targetTimestamp.value) return 0
+  if (!eventTimestamp.value) return 0
   const now = Date.now() + serverOffset.value
-  return Math.max(0, Math.floor((targetTimestamp.value - now) / 1000))
+  return Math.max(0, Math.floor((eventTimestamp.value - now) / 1000))
 }
 
 const updateCountdown = () => {
@@ -58,48 +56,11 @@ const seconds = computed(() => {
 })
 
 const fetchConfig = async () => {
-  try {
-    const res = await fetch('/api/config')
-    const contentType = res.headers.get('content-type') || ''
-    if (!res.ok || !contentType.includes('application/json')) {
-      throw new Error(`Respuesta inválida del servidor (${res.status})`)
-    }
-
-    const data = await res.json()
-    if (data.fecha_evento) {
-      targetTimestamp.value = new Date(data.fecha_evento).getTime()
-    } else {
-      targetTimestamp.value = null
-    }
-
-    if (data.hora_servidor) {
-      const serverTime = new Date(data.hora_servidor).getTime()
-      serverOffset.value = serverTime - Date.now()
-    }
-
-    if (data.registros_abiertos !== undefined) {
-      registrationsOpen.value = (
-        data.registros_abiertos === true ||
-        data.registros_abiertos === 1 ||
-        data.registros_abiertos === 'true' ||
-        data.registros_abiertos === '1'
-      )
-    }
-
-    updateCountdown()
-    if (totalSeconds.value > 0) {
-      if (timerInterval) clearInterval(timerInterval)
-      timerInterval = setInterval(updateCountdown, 1000)
-    }
-  } catch (err) {
-    console.warn('El servidor no respondió o falló /api/config, countdown establecido a 0:', err)
-    targetTimestamp.value = null
-    totalSeconds.value = 0
-    registrationsOpen.value = false
-    if (timerInterval) {
-      clearInterval(timerInterval)
-      timerInterval = null
-    }
+  await loadConfig()
+  updateCountdown()
+  if (totalSeconds.value > 0) {
+    if (timerInterval) clearInterval(timerInterval)
+    timerInterval = setInterval(updateCountdown, 1000)
   }
 }
 
