@@ -19,8 +19,8 @@ import StreamScheduleSection from '../components/sections/StreamScheduleSection.
 
 const emit = defineEmits(['open-modal'])
 
-const forwardOpenModal = (gameName) => {
-  emit('open-modal', gameName)
+const forwardOpenModal = (gameId) => {
+  emit('open-modal', gameId)
 }
 </script>
 

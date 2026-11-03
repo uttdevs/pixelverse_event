@@ -27,9 +27,9 @@ onMounted(() => {
 })
 
 const handleJoinArena = (arena) => {
-   if (!registrationsOpen.value) return
+  if (!registrationsOpen.value || !Number.isInteger(arena.id_juego)) return
   playClickSound()
-  emit('open-modal', arena.id_juego || arena.name)
+  emit('open-modal', arena.id_juego)
 }
 </script>
 
