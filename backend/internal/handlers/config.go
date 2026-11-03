@@ -39,6 +39,15 @@ func parseEventDate(raw string) (time.Time, error) {
 	return time.Time{}, errors.New("formato de fecha inválido. Se espera formato ISO (ej. 2026-11-27T10:00:00)")
 }
 
+func registrationsAreOpen(raw string, deadline, now time.Time) bool {
+	if !deadline.IsZero() && !now.Before(deadline) {
+		return false
+	}
+
+	raw = strings.TrimSpace(strings.ToLower(raw))
+	return raw == "1" || raw == "true" || raw == "si" || raw == "yes"
+}
+
 // GetEventConfig devuelve la fecha de inicio del evento, el estado de inscripciones y la hora del servidor.
 func GetEventConfig(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -73,11 +82,7 @@ func GetEventConfig(db *sql.DB) http.HandlerFunc {
 			fechaEvento = time.Date(2026, 11, 27, 10, 0, 0, 0, time.UTC)
 		}
 
-		registrosAbiertos := false
-		if rawReg, exists := configMap["registros_abiertos"]; exists {
-			raw := strings.TrimSpace(strings.ToLower(rawReg))
-			registrosAbiertos = (raw == "1" || raw == "true" || raw == "si" || raw == "yes")
-		}
+		registrosAbiertos := registrationsAreOpen(configMap["registros_abiertos"], fechaEvento, time.Now())
 
 		writeJSON(w, http.StatusOK, EventConfigResponse{
 			FechaEvento:       fechaEvento.Format(time.RFC3339),
@@ -187,9 +192,13 @@ func UpdateEventConfig(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		rawRegistros := "0"
+		if nuevosRegistros {
+			rawRegistros = "1"
+		}
 		writeJSON(w, http.StatusOK, EventConfigResponse{
 			FechaEvento:       nuevaFecha.Format(time.RFC3339),
-			RegistrosAbiertos: nuevosRegistros,
+			RegistrosAbiertos: registrationsAreOpen(rawRegistros, nuevaFecha, time.Now()),
 			HoraServidor:      time.Now().UTC().Format(time.RFC3339),
 		})
 	}

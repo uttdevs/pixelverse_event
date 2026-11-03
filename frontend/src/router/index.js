@@ -22,7 +22,7 @@ const routes = [
     path: '/',
     name: 'home',
     component: HomeView,
-    meta: { title: 'Pixel Verse // 2026 - Torneo Internacional de Esports' }
+    meta: { title: 'PIXEL VERSE // 2026 - ForoTI' }
   },
   {
     path: '/reglamento',
