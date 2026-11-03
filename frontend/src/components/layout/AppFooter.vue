@@ -49,7 +49,7 @@ const { playHoverSound } = useAudioSfx()
 
       <!-- Leyendas legales y tecnología -->
       <div class="mt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 font-rajdhani gap-4">
-        <p>© 2026 PIXEL VERSE ESPORTS CIRCUIT. ESTÁNDAR VUE 3 + TAILWIND V4.</p>
+        <p>© 2026 PIXEL VERSE</p>
         <p class="text-gray-400 flex items-center gap-1.5">
           <ShieldCheck class="w-4 h-4 text-cyber-blue" />
           <span>SERVIDORES PROTEGIDOS CON <strong class="text-cyber-blue">PIXEL VERSE2026 v4.2</strong></span>

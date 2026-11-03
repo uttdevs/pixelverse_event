@@ -21,18 +21,25 @@ const emit = defineEmits(['confirm', 'cancel'])
 const handleKeydown = (event) => {
   if (event.key === 'Escape') emit('cancel')
 }
-onMounted(() => window.addEventListener('keydown', handleKeydown))
-onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+  document.body.style.overflow = 'hidden'
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
+  document.body.style.overflow = ''
+})
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" @click.self="emit('cancel')">
-    <div
-      role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="admin-confirm-title"
-      class="admin-pop w-full max-w-md rounded-2xl p-6 bg-cyber-card border border-cyber-pink/50 shadow-[0_0_40px_rgba(255,0,127,0.2)]"
-    >
+  <Teleport to="body">
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" @click.self="emit('cancel')">
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="admin-confirm-title"
+        class="admin-pop w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl p-6 bg-cyber-card border border-cyber-pink/50 shadow-[0_0_40px_rgba(255,0,127,0.2)]"
+      >
       <div class="flex items-start gap-4">
         <div class="shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-cyber-pink/15 border border-cyber-pink/40">
           <AlertTriangle class="w-5 h-5 text-cyber-pink" />
@@ -66,8 +73,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
           {{ confirmLabel }}
         </button>
       </div>
+      </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <style scoped>

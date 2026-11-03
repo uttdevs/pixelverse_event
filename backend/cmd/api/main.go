@@ -16,8 +16,6 @@ import (
 	"pixelverse/backend/internal/handlers"
 )
 
-
-
 // main configura la conexión con MySQL, registra las rutas y ejecuta el servidor HTTP.
 func main() {
 	port := os.Getenv("PORT")
@@ -26,6 +24,7 @@ func main() {
 	}
 
 	cfg := database.NewConfigFromEnv()
+	cfg.MultiStatements = true
 	db, err := database.Connect(cfg)
 	if err != nil {
 		log.Fatalf("No se pudo inicializar la conexión con la base de datos: %v", err)
@@ -39,6 +38,13 @@ func main() {
 	}
 	cancelPing()
 
+	schemaCtx, cancelSchema := context.WithTimeout(context.Background(), 10*time.Second)
+	if err := database.InitializeSchema(schemaCtx, db); err != nil {
+		cancelSchema()
+		log.Fatalf("No se pudo inicializar el esquema de la base de datos: %v", err)
+	}
+	cancelSchema()
+
 	mux := http.NewServeMux()
 	registrarParticipante := handlers.RegistrarParticipante(db)
 
@@ -48,6 +54,7 @@ func main() {
 	mux.HandleFunc("GET /api/config", handlers.GetEventConfig(db))
 	mux.HandleFunc("GET /api/carreras", handlers.GetCarreras(db))
 	mux.HandleFunc("GET /api/juegos", handlers.GetJuegos(db))
+	mux.HandleFunc("GET /api/participantes/count", handlers.GetParticipantesCount(db))
 
 	// Registro público. Se admite la ruta REST y la ruta descriptiva para compatibilidad.
 	mux.Handle("POST /api/participantes", registrarParticipante)

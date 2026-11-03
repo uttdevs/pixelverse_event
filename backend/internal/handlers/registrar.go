@@ -58,6 +58,22 @@ func RegistrarParticipante(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		var registrosAbiertos string
+		err := db.QueryRowContext(r.Context(), "SELECT valor FROM evento_config WHERE clave = ?", "registros_abiertos").Scan(&registrosAbiertos)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			log.Printf("[handlers.RegistrarParticipante] Error consultando configuración del evento: %v", err)
+			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo consultar la configuración del evento"})
+			return
+		}
+		inscripcionesHabilitadas := strings.EqualFold(strings.TrimSpace(registrosAbiertos), "1") ||
+			strings.EqualFold(strings.TrimSpace(registrosAbiertos), "true") ||
+			strings.EqualFold(strings.TrimSpace(registrosAbiertos), "si") ||
+			strings.EqualFold(strings.TrimSpace(registrosAbiertos), "yes")
+		if !inscripcionesHabilitadas {
+			writeJSON(w, http.StatusForbidden, ErrorResponse{Status: "error", Message: "Las inscripciones están cerradas"})
+			return
+		}
+
 		tx, err := db.BeginTx(r.Context(), nil)
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo iniciar el registro"})

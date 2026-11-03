@@ -20,7 +20,7 @@
  *    sin el layout público, para ofrecer una interfaz de gestión independiente.
  */
 
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 
 // Componentes de Layout Global
@@ -37,8 +37,7 @@ import RegistrationModal from './components/ui/RegistrationModal.vue'
 // ----------------------------------------------------------------------------
 const isModalOpen = ref(false)
 const selectedGameForModal = ref(3)
-const registeredParticipantsCount = ref(54)
-const maxParticipantsCount = 96
+const registeredParticipantsCount = ref(0)
 
 const route = useRoute()
 const isAdminLayout = computed(() => route.meta.layout === 'admin')
@@ -59,12 +58,29 @@ const handleCloseModal = () => {
   isModalOpen.value = false
 }
 
-const handleParticipantRegistered = (participantData) => {
-  console.log('[Pixel Verse] Nuevo participante registrado:', participantData)
-  if (registeredParticipantsCount.value < maxParticipantsCount) {
-    registeredParticipantsCount.value++
+const loadParticipantsCount = async () => {
+  try {
+    const response = await fetch('/api/participantes/count')
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+
+    const data = await response.json()
+    if (typeof data.count === 'number') {
+      registeredParticipantsCount.value = data.count
+    }
+  } catch (error) {
+    console.warn('No se pudo obtener el total de participantes:', error)
   }
 }
+
+const handleParticipantRegistered = () => {
+  loadParticipantsCount()
+}
+
+onMounted(() => {
+  loadParticipantsCount()
+})
 </script>
 
 <template>
@@ -81,7 +97,6 @@ const handleParticipantRegistered = (participantData) => {
     <!-- 2. Barra Superior de Telemetría Gamer (Global) -->
     <HudBar
       :participants-count="registeredParticipantsCount"
-      :max-participants="maxParticipantsCount"
     />
 
     <!-- 3. Navegación Principal y Logotipo (Global) -->

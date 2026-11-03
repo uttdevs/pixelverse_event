@@ -50,8 +50,14 @@ const handleSubmit = async () => {
 const handleKeydown = (event) => {
   if (event.key === 'Escape') emit('close')
 }
-onMounted(() => window.addEventListener('keydown', handleKeydown))
-onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+  document.body.style.overflow = 'hidden'
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
+  document.body.style.overflow = ''
+})
 
 const readOnlyFields = computed(() => [
   ['Matrícula', props.inscripcion.matricula],
@@ -64,13 +70,14 @@ const readOnlyFields = computed(() => [
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" @click.self="emit('close')">
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="admin-edit-title"
-      class="admin-pop w-full max-w-lg rounded-2xl bg-cyber-card border border-cyber-blue/50 shadow-[0_0_40px_rgba(0,240,255,0.18)] overflow-hidden"
-    >
+  <Teleport to="body">
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" @click.self="emit('close')">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="admin-edit-title"
+        class="admin-pop w-full max-w-lg max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl bg-cyber-card border border-cyber-blue/50 shadow-[0_0_40px_rgba(0,240,255,0.18)]"
+      >
       <header class="flex items-center justify-between gap-4 px-6 py-4 border-b border-white/10 bg-gradient-to-r from-cyber-blue/10 to-cyber-purple/10">
         <div class="flex items-center gap-3 min-w-0">
           <Pencil class="w-5 h-5 text-cyber-blue shrink-0" />
@@ -150,8 +157,9 @@ const readOnlyFields = computed(() => [
           </button>
         </div>
       </form>
+      </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <style scoped>

@@ -218,6 +218,29 @@ export function useAdminInscripciones() {
   }
 
   // --------------------------------------------------------------------------
+  // CONFIGURACIÓN DEL EVENTO
+  // --------------------------------------------------------------------------
+  const loadConfig = async () => {
+    const response = await adminFetch('/api/config')
+    const data = await response.json()
+    const date = data.fecha_evento ? new Date(data.fecha_evento) : new Date()
+    const pad = (value) => String(value).padStart(2, '0')
+    return {
+      registros_abiertos: Boolean(data.registros_abiertos),
+      fecha_evento: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+    }
+  }
+
+  const updateConfig = async (config) => {
+    const response = await adminFetch('/api/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    })
+    return response.json()
+  }
+
+  // --------------------------------------------------------------------------
   // ESTADÍSTICAS (sobre el listado cargado)
   // --------------------------------------------------------------------------
   const stats = computed(() => {
@@ -253,6 +276,8 @@ export function useAdminInscripciones() {
     update,
     remove,
     countByParticipante,
-    exportExcel
+    exportExcel,
+    loadConfig,
+    updateConfig
   }
 }

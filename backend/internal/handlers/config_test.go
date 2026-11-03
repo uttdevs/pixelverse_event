@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestParseEventDate(t *testing.T) {
@@ -30,6 +31,23 @@ func TestParseEventDate(t *testing.T) {
 		if !c.wantErr && err != nil {
 			t.Errorf("parseEventDate(%q) falló inesperadamente: %v", c.input, err)
 		}
+	}
+}
+
+func TestRegistrationsAreOpenClosesAfterDeadline(t *testing.T) {
+	deadline := time.Date(2026, 11, 27, 10, 0, 0, 0, time.UTC)
+
+	if registrationsAreOpen("1", deadline, deadline) {
+		t.Fatal("las inscripciones deben estar cerradas al llegar al deadline")
+	}
+	if registrationsAreOpen("1", deadline, deadline.Add(time.Second)) {
+		t.Fatal("las inscripciones deben estar cerradas después del deadline")
+	}
+	if !registrationsAreOpen("1", deadline, deadline.Add(-time.Second)) {
+		t.Fatal("las inscripciones deben permanecer abiertas antes del deadline")
+	}
+	if registrationsAreOpen("0", deadline, deadline.Add(-time.Second)) {
+		t.Fatal("el estado manual apagado debe mantener cerradas las inscripciones")
 	}
 }
 

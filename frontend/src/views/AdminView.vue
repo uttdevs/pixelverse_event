@@ -15,19 +15,20 @@
 
 import { computed, onMounted, ref, watch } from 'vue'
 import {
-  CheckCircle2, Clock, Download, FilterX, Gamepad2, Loader2, LogOut, RefreshCw, Search, Users, XCircle
+  CheckCircle2, Clock, Download, FilterX, Gamepad2, Loader2, LogOut, RefreshCw, Search, Settings, Users, XCircle
 } from 'lucide-vue-next'
 import AdminLogin from '../components/admin/AdminLogin.vue'
 import InscripcionesTable from '../components/admin/InscripcionesTable.vue'
 import EditInscripcionModal from '../components/admin/EditInscripcionModal.vue'
 import ConfirmDialog from '../components/admin/ConfirmDialog.vue'
+import EventConfigModal from '../components/admin/EventConfigModal.vue'
 import { useAdminInscripciones } from '../composables/useAdminInscripciones'
 
 const {
   isAuthenticated, login, logout,
   inscripciones, juegos, carreras, filters, hasActiveFilters,
   isLoading, isExporting, loadError, stats,
-  loadCatalogs, load, resetFilters, update, remove, countByParticipante, exportExcel
+  loadCatalogs, load, resetFilters, update, remove, countByParticipante, exportExcel, loadConfig, updateConfig
 } = useAdminInscripciones()
 
 // --------------------------------------------------------------------------
@@ -62,6 +63,8 @@ const editing = ref(null)
 const deleting = ref(null)
 const isDeleting = ref(false)
 const togglingId = ref(null)
+const eventConfig = ref(null)
+const isConfigSaving = ref(false)
 
 const handleSaved = (result) => {
   editing.value = null
@@ -111,6 +114,27 @@ const handleExport = async () => {
   }
 }
 
+const openSettings = async () => {
+  try {
+    eventConfig.value = await loadConfig()
+  } catch (error) {
+    notify(error.message, 'error')
+  }
+}
+
+const handleConfigSave = async (config) => {
+  isConfigSaving.value = true
+  try {
+    await updateConfig(config)
+    eventConfig.value = null
+    notify('Ajustes guardados correctamente')
+  } catch (error) {
+    notify(error.message, 'error')
+  } finally {
+    isConfigSaving.value = false
+  }
+}
+
 const statCards = computed(() => [
   { id: 'total', label: 'Inscripciones', value: stats.value.total, icon: Gamepad2, accent: 'from-cyber-blue/30 to-cyber-blue/0 text-cyber-blue' },
   { id: 'participantes', label: 'Participantes', value: stats.value.participantes, icon: Users, accent: 'from-cyber-purple/30 to-cyber-purple/0 text-violet-300' },
@@ -137,6 +161,16 @@ const selectClass = 'px-3 py-2.5 rounded-lg bg-cyber-dark border border-white/15
           </span>
         </div>
         <div class="flex items-center gap-2">
+          <button
+            id="admin-settings"
+            type="button"
+            title="Ajustes del evento"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-rajdhani uppercase tracking-wider text-gray-300 bg-white/5 hover:bg-white/10 hover:text-cyber-blue border border-white/10 transition cursor-pointer"
+            @click="openSettings"
+          >
+            <Settings class="w-4 h-4" />
+            <span class="hidden sm:inline">Ajustes</span>
+          </button>
           <button
             id="admin-export"
             type="button"
@@ -303,6 +337,13 @@ const selectClass = 'px-3 py-2.5 rounded-lg bg-cyber-dark border border-white/15
       :is-processing="isDeleting"
       @cancel="deleting = null"
       @confirm="handleConfirmDelete"
+    />
+    <EventConfigModal
+      v-if="eventConfig"
+      :config="eventConfig"
+      :is-saving="isConfigSaving"
+      @close="eventConfig = null"
+      @save="handleConfigSave"
     />
   </div>
 

@@ -55,6 +55,10 @@ const seconds = computed(() => {
   return String(s).padStart(2, '0')
 })
 
+const showComingSoon = computed(() => {
+  return !registrationsOpen.value && totalSeconds.value > 0
+})
+
 const fetchConfig = async () => {
   await loadConfig()
   updateCountdown()
@@ -157,7 +161,7 @@ const handleRegisterClick = () => {
 
             <!-- Indicador secundario cuando las inscripciones están cerradas -->
             <div
-              v-if="!registrationsOpen"
+              v-if="showComingSoon"
               class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-cyber-pink/10 border border-cyber-pink/30 text-cyber-pink font-rajdhani font-semibold text-xs tracking-widest uppercase"
             >
               <span class="w-2 h-2 rounded-full bg-cyber-pink animate-ping"></span>
