@@ -16,18 +16,6 @@ const props = defineProps({
   participantsCount: {
     type: Number,
     default: null
-  },
-  maxParticipants: {
-    type: Number,
-    default: null
-  },
-  squadsCount: {
-    type: Number,
-    default: 118
-  },
-  maxSquads: {
-    type: Number,
-    default: 128
   }
 })
 
@@ -78,7 +66,7 @@ onUnmounted(() => {
         <span class="text-purple-300 flex items-center">
           <Users class="w-3.5 h-3.5 inline mr-1.5 text-cyber-purple" />
           PARTICIPANTES INSCRITOS:
-          <strong class="text-white ml-1">{{ (props.participantsCount ?? props.squadsCount) }} / {{ (props.maxParticipants ?? props.maxSquads) }}</strong>
+          <strong class="text-white ml-1">{{ props.participantsCount ?? 0 }}</strong>
         </span>
 
         <!-- Botón de efectos de sonido -->

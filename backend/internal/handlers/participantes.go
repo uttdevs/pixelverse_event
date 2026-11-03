@@ -5,11 +5,9 @@ import (
 	"net/http"
 )
 
-
-
 type Participante struct {
 	IDParticipante int    `json:"id_participante"`
-	NombreCompleto         string `json:"nombre_completo"`
+	NombreCompleto string `json:"nombre_completo"`
 	Matricula      string `json:"matricula"`
 	IDCarrera      int    `json:"id_carrera"`
 	Cuatrimestre   int    `json:"cuatrimestre"`
@@ -17,6 +15,24 @@ type Participante struct {
 	Telefono       string `json:"telefono"`
 	Correo         string `json:"correo,omitempty"`
 	FechaRegistro  string `json:"fecha_registro"`
+}
+
+// GetParticipantesCount devuelve el número de participantes únicos inscritos.
+func GetParticipantesCount(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if db == nil {
+			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "Base de datos no inicializada"})
+			return
+		}
+
+		var count int
+		if err := db.QueryRowContext(r.Context(), "SELECT COUNT(DISTINCT id_participante) FROM inscripciones").Scan(&count); err != nil {
+			writeJSON(w, http.StatusInternalServerError, ErrorResponse{Status: "error", Message: "No se pudo obtener el total de participantes"})
+			return
+		}
+
+		writeJSON(w, http.StatusOK, map[string]int{"count": count})
+	}
 }
 
 // GetParticipantes devuelve participantes para uso administrativo autorizado.

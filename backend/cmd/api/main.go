@@ -16,8 +16,6 @@ import (
 	"pixelverse/backend/internal/handlers"
 )
 
-
-
 // main configura la conexión con MySQL, registra las rutas y ejecuta el servidor HTTP.
 func main() {
 	port := os.Getenv("PORT")
@@ -48,6 +46,7 @@ func main() {
 	mux.HandleFunc("GET /api/config", handlers.GetEventConfig(db))
 	mux.HandleFunc("GET /api/carreras", handlers.GetCarreras(db))
 	mux.HandleFunc("GET /api/juegos", handlers.GetJuegos(db))
+	mux.HandleFunc("GET /api/participantes/count", handlers.GetParticipantesCount(db))
 
 	// Registro público. Se admite la ruta REST y la ruta descriptiva para compatibilidad.
 	mux.Handle("POST /api/participantes", registrarParticipante)
