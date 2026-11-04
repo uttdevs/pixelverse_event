@@ -24,6 +24,7 @@ import { ref } from 'vue'
 const ARENA_STYLES = {
   1: { // King of Fighters
     iconType: 'flame',
+    image: '/imagenes/juegos/the-king-of-fighters.jpeg',
     accentColor: 'cyber-purple',
     glowClass: 'hover:box-glow-purple',
     bgGradient: 'from-purple-950 via-indigo-900 to-cyber-dark',
@@ -31,6 +32,7 @@ const ARENA_STYLES = {
   },
   2: { // Street Fighter
     iconType: 'bomb',
+    image: '/imagenes/juegos/street-fighter.jpeg',
     accentColor: 'cyber-blue',
     glowClass: 'hover:box-glow-blue',
     bgGradient: 'from-blue-950 via-slate-900 to-cyber-dark',
@@ -38,6 +40,8 @@ const ARENA_STYLES = {
   },
   3: { // FIFA 2026
     iconType: 'crosshair',
+    image: '/imagenes/juegos/fifa.jpeg',
+    imageFit: 'object-cover',
     accentColor: 'cyber-blue',
     glowClass: 'hover:box-glow-blue',
     bgGradient: 'from-indigo-950 via-purple-900 to-cyber-dark',
@@ -119,6 +123,7 @@ export function useTournamentData() {
               formatBadge: `Inscripción : $ ${precio}`,
               prize: '',
               registeredParticipants: j.total_inscritos || 0,
+              image: j.imagen || '',            
               cuposMaximos: j.cupos_maximos,
               ...style
             }
