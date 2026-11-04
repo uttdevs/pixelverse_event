@@ -24,7 +24,7 @@ import { ref } from 'vue'
 const ARENA_STYLES = {
   1: { // King of Fighters
     iconType: 'flame',
-    image: '/imagenes/juegos/the-king-of-fighters.jpeg',
+    image: '/imagenes/juegos/the-king-of-fighters.jpg',
     accentColor: 'cyber-purple',
     glowClass: 'hover:box-glow-purple',
     bgGradient: 'from-purple-950 via-indigo-900 to-cyber-dark',
@@ -32,7 +32,7 @@ const ARENA_STYLES = {
   },
   2: { // Street Fighter
     iconType: 'bomb',
-    image: '/imagenes/juegos/street-fighter.jpeg',
+    image: '/imagenes/juegos/street-fighter.jpg',
     accentColor: 'cyber-blue',
     glowClass: 'hover:box-glow-blue',
     bgGradient: 'from-blue-950 via-slate-900 to-cyber-dark',
@@ -40,7 +40,7 @@ const ARENA_STYLES = {
   },
   3: { // FIFA 2026
     iconType: 'crosshair',
-    image: '/imagenes/juegos/fifa.jpeg',
+    image: '/imagenes/juegos/fifa.jpg',
     imageFit: 'object-cover',
     accentColor: 'cyber-blue',
     glowClass: 'hover:box-glow-blue',
