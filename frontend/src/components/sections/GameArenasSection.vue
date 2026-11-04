@@ -61,6 +61,15 @@ const handleJoinArena = (arena) => {
             class="relative h-48 overflow-hidden bg-gradient-to-br flex items-center justify-center"
             :class="arena.bgGradient"
           >
+           <img
+              v-if="arena.image"
+              :src="arena.image"
+              :alt="arena.name"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-500"
+            />
+ 
+            <template v-if="!arena.image">
+          
             <!-- Renderizado dinámico de icono Lucide según arena -->
             <Crosshair
               v-if="arena.iconType === 'crosshair'"
@@ -78,6 +87,7 @@ const handleJoinArena = (arena) => {
               v-else
               class="w-24 h-24 text-cyber-pink opacity-25 group-hover:scale-125 group-hover:opacity-50 transition duration-500"
             />
+            </template>
 
             <div class="absolute inset-0 bg-gradient-to-t from-cyber-card via-transparent to-transparent"></div>
             
