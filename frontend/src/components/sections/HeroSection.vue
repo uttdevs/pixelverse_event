@@ -111,8 +111,8 @@ const handleRegisterClick = () => {
 
           <!-- Resumen del Torneo -->
           <p class="text-gray-300 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 font-light leading-relaxed">
-            <strong class="text-cyber-blue font-semibold"></strong> Los rivales están listos y ha llegado tu momento de demostrar de qué estás hecho. Desafía tus límites, libera tu potencial y lucha por convertirte en una leyenda. ⚡ 
-            <span class="text-white font-semibold underline decoration-cyber-purple">¡Inscríbete ahora, asegura tu lugar y prepárate! La gloria espera a quienes se atreven a jugar. ¿Tienes lo necesario para dejar tu huella?👑🔥</span>.
+            <strong class="text-cyber-blue font-semibold"></strong> Los rivales están listos y ha llegado tu momento de demostrar de qué estás hecho.
+            <span class="text-white font-semibold underline decoration-cyber-purple">¡Inscríbete ahora, asegura tu lugar y prepárate!</span>.
           </p>
 
           <!-- Reloj de Cuenta Regresiva en Vivo (Live Countdown Timer) -->
